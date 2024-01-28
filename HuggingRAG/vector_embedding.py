@@ -33,7 +33,7 @@ class VectorEmbedding():
         self.vectors = None
         self.store = None
         self.model_id = model_id
-        self.device = torch.device(device)
+        self.device = torch.device("cuda" if device == "gpu" else device)
         self.max_length = max_length
         self.tokenizer = AutoTokenizer.from_pretrained(model_id)
         self.tokenizer_params = {
