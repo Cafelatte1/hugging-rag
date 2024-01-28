@@ -117,7 +117,7 @@ Response: """
         context = []
         if feature_length_strategy == "balanced":
             feature_lengths = np.array([np.percentile(vector_data.get_df_doc()[col].apply(len), feature_length_threshold) for col in feature_names])
-            feature_lengths = ((feature_lengths / feature_lengths.sum()) * feature_length_threshold).astype("int32")
+            feature_lengths = ((feature_lengths / feature_lengths.sum()) * max_context_length).astype("int32")
             for idx, doc_id in enumerate(retrieval_docs["doc_id"].iloc[:num_context_docs]):
                 context.append(f"[{doc_keyword}{idx+1}]\n" + "\n".join([f"{k.split('_')[-1]}: {v[:max_len]}" for max_len, (k, v) in zip(feature_lengths, vector_data.get_df_doc().loc[doc_id].items())]))
         else:
