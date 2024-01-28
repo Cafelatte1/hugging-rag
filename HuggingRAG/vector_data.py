@@ -40,12 +40,4 @@ class VectorDataContainer():
 
     def get_chunks(self):
         return self.df_doc_feature["chunk"].to_list()
-
-# # === EXAMPLE ===
-# vector_data = VectorDataContainer(text_splitter=RecursiveCharacterTextSplitter(chunk_size=200, chunk_overlap=20))
-# vector_data.get_vectordata(
-#     doc_id=range(len(df)),
-#     doc_features={
-#         "기초사실": df["feature_기초사실"],
-#     }
-# )
+    

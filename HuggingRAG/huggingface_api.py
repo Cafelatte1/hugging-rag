@@ -6,7 +6,7 @@ from torch import nn
 import torch.nn.functional as F
 from torch.utils.data import Dataset, TensorDataset, DataLoader
 import transformers
-from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
+from transformers import AutoTokenizer, AutoModelForCausalLM, AutoConfig, BitsAndBytesConfig
 from torch.utils.data import TensorDataset
 
 """## Generation with Retrieval Documents"""
@@ -18,20 +18,20 @@ class HuggingFaceAPI():
         self.model_id = model_id
         if quantization_params is True:
             quantization_params = BitsAndBytesConfig(
-                # 모델을 4bit로 로딩하도록 설정합니다
+                # 4bit quantization
                 load_in_4bit=True,
-                # double quantization 모드를 활성화합니다 (weight 저장과 계산을 다른 타입으로 할 수 있게 합니다)
+                # use double quantization
                 bnb_4bit_use_double_quant=True,
-                # double quantization 모드에서 저장될 데이터 타입을 지정합니다
+                # set data type in saving the weights
                 bnb_4bit_quant_type="nf4",
-                # double quantization 모드에서 계산에 데이터 타입을 지정합니다
+                # set data type in calculating the weights
                 bnb_4bit_compute_dtype=torch.bfloat16,
                 # set device
                 device_map="auto",
             )
         self.quantization_params = quantization_params
         self.device = torch.device("cuda" if device == "gpu" else device)
-        self.max_length = max_length
+        self.max_length = AutoConfig.from_pretrained(model_id).max_position_embeddings if max_length is None else max_length
         self.tokenizer = AutoTokenizer.from_pretrained(model_id, padding_side="left")
         self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
         self.tokenizer_params = {
@@ -147,45 +147,3 @@ Response: """
             "inference_runtime": round(end_time - start_time, 3),
         }
         return output
-
-# # === EXAMPLE ===
-# generate_params = {
-#     "max_new_tokens": 300,
-#     "num_beams": 3,
-#     "do_sample": True,
-#     "temperature": 0.7,
-#     "top_k": 50,
-#     "top_p": 0.9,
-#     "length_penalty": 0.8,
-#     "repetition_penalty": 1.2,
-#     "no_repeat_ngram_size": 3,
-#     "eos_token_id": 2,
-# }
-# generate_params["early_stopping"] = True if generate_params["num_beams"] > 1 else False
-
-# # config on model for quantization
-# quantization_params = BitsAndBytesConfig(
-#     # 모델을 4bit로 로딩하도록 설정합니다
-#     load_in_4bit=True,
-#     # double quantization 모드를 활성화합니다 (weight 저장과 계산을 다른 타입으로 할 수 있게 합니다)
-#     bnb_4bit_use_double_quant=True,
-#     # double quantization 모드에서 저장될 데이터 타입을 지정합니다
-#     bnb_4bit_quant_type="nf4",
-#     # double quantization 모드에서 계산에 데이터 타입을 지정합니다
-#     bnb_4bit_compute_dtype=torch.bfloat16,
-#     # set device
-#     device_map="auto",
-# )
-
-# model_id = "EleutherAI/polyglot-ko-1.3b"
-# llm_seq_len = 2048
-# llm = HuggingFaceAPI(model_id, vector_embedding, vector_store, generate_params=generate_params, quantization_params=quantization_params, max_length=llm_seq_len)
-
-# prompt = llm.create_prompt_template()
-# question = "금은품 절도 사건 관련한 문서의 재판부 판결을 요약해주세요."
-# output = llm.generate(
-#     prompt, question, doc_keyword="문서",
-#     feature_length_strategy="balanced", feature_length_threshold=80, max_context_length=int(llm_seq_len * 0.5),
-# )
-
-# print(output["response"])

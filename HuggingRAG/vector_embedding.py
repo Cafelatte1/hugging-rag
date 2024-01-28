@@ -34,7 +34,7 @@ class VectorEmbedding():
         self.store = None
         self.model_id = model_id
         self.device = torch.device("cuda" if device == "gpu" else device)
-        self.max_length = max_length
+        self.max_length = AutoConfig.from_pretrained(model_id).max_position_embeddings if max_length is None else max_length
         self.tokenizer = AutoTokenizer.from_pretrained(model_id)
         self.tokenizer_params = {
             "max_length": max_length,
@@ -75,10 +75,3 @@ class VectorEmbedding():
         gc.collect()
         embed = torch.cat(embed, dim=0).to(torch.float32)
         return F.normalize(embed, p=2, dim=1).detach().cpu().numpy() if norm else embed.detach().cpu().numpy()
-
-# # === EXAMPLE ===
-# # create vector embedding class
-# model_id = "microsoft/Multilingual-MiniLM-L12-H384"
-# model_seq_len = 512
-# vector_embedding = VectorEmbedding(model_id, max_length=model_seq_len)
-# embedding = vector_embedding.get_vectorembedding(vector_data.get_chunks())
