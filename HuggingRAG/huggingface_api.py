@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import numpy as np
 import time
@@ -8,7 +9,7 @@ from torch.utils.data import Dataset, TensorDataset, DataLoader
 import transformers
 from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 from torch.utils.data import TensorDataset
-from utils import MeanPooling
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 """## Generation with Retrieval Documents"""
 

@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 from tqdm import tqdm
 from langchain.text_splitter import RecursiveCharacterTextSplitter
