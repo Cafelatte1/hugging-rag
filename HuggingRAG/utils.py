@@ -1,4 +1,5 @@
 import torch
+from torch import nn
 
 class MeanPooling(nn.Module):
     def __init__(self):
