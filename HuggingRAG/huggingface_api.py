@@ -107,7 +107,7 @@ Response: """
         return prompt
 
     def generate(
-            self, prompt, search_query, question, vector_data, doc_keyword="document", num_context_docs=1, feature_length_strategy="balanced",
+            self, prompt, search_query, question, vector_data, doc_keyword="Document", num_context_docs=1, feature_length_strategy="balanced",
             max_context_length=1000, max_feature_length=100, feature_length_threshold=80,
         ):
         # retrieval
@@ -119,10 +119,10 @@ Response: """
             feature_lengths = np.array([np.percentile(vector_data.get_df_doc()[col].apply(len), feature_length_threshold) for col in feature_names])
             feature_lengths = ((feature_lengths / feature_lengths.sum()) * max_context_length).astype("int32")
             for idx, doc_id in enumerate(retrieval_docs["doc_id"].iloc[:num_context_docs]):
-                context.append(f"[{doc_keyword}{idx+1}]\n" + "\n".join([f"{k.split('_')[-1]}: {v[:max_len]}" for max_len, (k, v) in zip(feature_lengths, vector_data.get_df_doc().loc[doc_id].items())]))
+                context.append(f"[{doc_keyword} {idx+1}]\n" + "\n".join([f"{k.split('_')[-1]}: {v[:max_len]}" for max_len, (k, v) in zip(feature_lengths, vector_data.get_df_doc().loc[doc_id].items())]))
         else:
             for idx, doc_id in enumerate(retrieval_docs["doc_id"].iloc[:num_context_docs]):
-                context.append(f"[{doc_keyword}{idx+1}]\n" + "\n".join([f"{k.split('_')[-1]}: {v[:max_len]}" for max_len, (k, v) in zip([max_feature_length] * len(feature_names), vector_data.get_df_doc().loc[doc_id].items())]))
+                context.append(f"[{doc_keyword} {idx+1}]\n" + "\n".join([f"{k.split('_')[-1]}: {v[:max_len]}" for max_len, (k, v) in zip([max_feature_length] * len(feature_names), vector_data.get_df_doc().loc[doc_id].items())]))
         # cut text with max value
         context = "\n".join(context)[:(max_context_length + len(context))]
         # create prompt
