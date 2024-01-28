@@ -98,14 +98,15 @@ Response: """
         ):
         if generation_params is True:
             generation_params = {
-                "max_length": 1000,
+                "max_new_tokens": 300,
                 "num_beams": 3,
                 "do_sample": True,
-                "temperature": 0.9,
+                "temperature": 0.8,
                 "top_k": 50,
                 "top_p": 0.95,
-                "repetition_penalty": 1.2,
                 "length_penalty": 1.0,
+                "repetition_penalty": 1.2,
+                "no_repeat_ngram_size": 3,
                 "eos_token_id": 2,
             }
             generation_params["early_stopping"] = True if generation_params["num_beams"] > 1 else False
