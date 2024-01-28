@@ -64,7 +64,7 @@ class HuggingFaceAPI():
 검색된 문서들을 참고하여 요청에 알맞는 답변을 해주세요.
 모르는 요청이면 '잘 모르겠습니다.'라고 답변해주세요.
 
-검색 키워드: {searching_query}
+검색 키워드: {search_query}
 
 검색된 문서
 ```
