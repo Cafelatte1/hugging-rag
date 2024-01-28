@@ -35,7 +35,7 @@ class HuggingFaceAPI():
         self.tokenizer = AutoTokenizer.from_pretrained(model_id, padding_side="left")
         self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
         self.tokenizer_params = {
-            "max_length": max_length,
+            "max_length": self.max_length,
             "padding": "max_length",
             "truncation": True,
             "return_attention_mask": True,
