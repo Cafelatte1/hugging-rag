@@ -12,24 +12,10 @@ from torch.utils.data import TensorDataset
 """## Generation with Retrieval Documents"""
 
 class HuggingFaceAPI():
-    def __init__(self, model_id, vector_embedding, vector_store, generate_params, quantization_params=None, max_length=512, device="cpu"):
+    def __init__(self, model_id, vector_embedding, vector_store, quantization_params=None, max_length=512, device="cpu"):
         self.vector_embedding = vector_embedding
         self.vector_store = vector_store
         self.model_id = model_id
-        if generate_params is True:
-            generate_params = {
-                "max_length": 1000,
-                "num_beams": 3,
-                "do_sample": True,
-                "temperature": 0.9,
-                "top_k": 50,
-                "top_p": 0.95,
-                "repetition_penalty": 1.2,
-                "length_penalty": 1.0,
-                "eos_token_id": 2,
-            }
-            generate_params["early_stopping"] = True if generate_params["num_beams"] > 1 else False
-        self.generate_params = generate_params
         if quantization_params is True:
             quantization_params = BitsAndBytesConfig(
                 # 모델을 4bit로 로딩하도록 설정합니다
@@ -107,9 +93,22 @@ Response: """
         return prompt
 
     def generate(
-            self, prompt, search_query, question, vector_data, doc_keyword="Document", num_context_docs=1, feature_length_strategy="balanced",
-            max_context_length=1000, max_feature_length=100, feature_length_threshold=80,
+            self, prompt, search_query, question, vector_data, doc_keyword="Document", generation_params={},
+            num_context_docs=1, feature_length_strategy="balanced", max_context_length=1000, max_feature_length=100, feature_length_threshold=80,
         ):
+        if generation_params is True:
+            generation_params = {
+                "max_length": 1000,
+                "num_beams": 3,
+                "do_sample": True,
+                "temperature": 0.9,
+                "top_k": 50,
+                "top_p": 0.95,
+                "repetition_penalty": 1.2,
+                "length_penalty": 1.0,
+                "eos_token_id": 2,
+            }
+            generation_params["early_stopping"] = True if generation_params["num_beams"] > 1 else False
         # retrieval
         retrieval_docs = self.vector_store.search(self.vector_embedding.get_vectorembedding(search_query))
         # create context from retrieved documents
@@ -137,7 +136,7 @@ Response: """
                 batch[1] = batch[1].to(self.device)
                 gened = self.model.generate(
                     **{"input_ids": batch[0], "attention_mask": batch[1]},
-                    **self.generate_params,
+                    **generation_params,
                 )
             response = self.tokenizer.batch_decode(gened, skip_special_tokens=True)[0]
         end_time = time.time()
