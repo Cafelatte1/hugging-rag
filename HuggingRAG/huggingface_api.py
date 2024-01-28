@@ -12,7 +12,7 @@ from torch.utils.data import TensorDataset
 """## Generation with Retrieval Documents"""
 
 class HuggingFaceAPI():
-    def __init__(self, model_id, vector_embedding, vector_store, quantization_params=None, max_length=512, device="cpu"):
+    def __init__(self, model_id, vector_embedding, vector_store, quantization_params=None, max_length=None, device="cpu"):
         self.vector_embedding = vector_embedding
         self.vector_store = vector_store
         self.model_id = model_id

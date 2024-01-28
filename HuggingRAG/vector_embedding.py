@@ -6,7 +6,7 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 from torch.utils.data import TensorDataset, DataLoader
-from transformers import AutoTokenizer, AutoModel
+from transformers import AutoTokenizer, AutoModel, AutoConfig
 from torch.utils.data import TensorDataset
 
 """## Create Vector Embedding"""
@@ -29,7 +29,7 @@ class MeanPooling(nn.Module):
         return mean_embeddings
     
 class VectorEmbedding():
-    def __init__(self, model_id, max_length=512, device='cpu'):
+    def __init__(self, model_id, max_length=None, device='cpu'):
         self.vectors = None
         self.store = None
         self.model_id = model_id
