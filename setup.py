@@ -16,8 +16,7 @@ setup(
         'transformers',
         'sentencepiece',
         'bitsandbytes',
-        'git+https://github.com/huggingface/peft.git',
-        'git+https://github.com/huggingface/accelerate.git',
+        'accelerate',
         'langchain',
     ],
 )
