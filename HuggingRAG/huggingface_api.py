@@ -44,7 +44,7 @@ class HuggingFaceAPI():
                 device_map="auto",
             )
         self.quantization_params = quantization_params
-        self.device = torch.device(device)
+        self.device = torch.device("cuda" if device == "gpu" else device)
         self.max_length = max_length
         self.tokenizer = AutoTokenizer.from_pretrained(model_id, padding_side="left")
         self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
