@@ -9,5 +9,15 @@ setup(
     license="MIT",
     python_requires='>=3.10',
     zip_safe=False,
-    install_requires=['numpy', 'pandas', 'torch', 'transformers'],
+    install_requires=[
+        'numpy==1.25.2',
+        'pandas==2.1.4',
+        'tqdm',
+        'transformers',
+        'sentencepiece',
+        'bitsandbytes',
+        'git+https://github.com/huggingface/peft.git',
+        'git+https://github.com/huggingface/accelerate.git',
+        'langchain',
+    ],
 )
