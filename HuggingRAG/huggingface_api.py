@@ -73,35 +73,45 @@ class HuggingFaceAPI():
 
     def create_prompt_template(self, lang="kor"):
         if lang in ["kr", "kor"]:
-            prompt = """지시문: 문맥을 참고하여 질문에 알맞는 답변을 해주세요. 문맥은 ```구분자 안에 있습니다. 모르는 질문이면 '잘 모르겠습니다.'라고 답변해주세요.
+            prompt = """지시문: 검색된 문서는 검색 키워드를 통해 검색된 문서들의 정보 입니다.
+검색된 문서들은 ``` 구분자 안에 [Document N] 형식으로 있습니다.
+검색된 문서들을 참고하여 요청에 알맞는 답변을 해주세요.
+모르는 요청이면 '잘 모르겠습니다.'라고 답변해주세요.
 
-문맥
+검색 키워드: {searching_query}
+
+검색된 문서
 ```
 {context}
 ```
 
-질문: {question}
+요청: {question}
 
 답변: """
         else:
-            prompt = """Instruction: Please reply on question referring to context. Context is in ```separator. If you don't know about question, please reply 'I don't know.'.
+            prompt = """Instructions: The retrieved documents contain information on the documents found through the search keyword.
+The searched documents are in the format [Document N] within the ``` delimiter.
+Please refer to the searched documents to provide an appropriate response to the request.
+If you do not know the request, please respond with 'I don't know.'
 
-Context
+Search keyword: {search_query}
+
+Searched documents:
 ```
 {context}
 ```
 
-Question: {question}
+Request: {question}
 
-Answer: """
+Response: """
         return prompt
 
     def generate(
-            self, prompt, question, vector_data, doc_keyword="document", num_context_docs=1, feature_length_strategy="balanced",
+            self, prompt, search_query, question, vector_data, doc_keyword="document", num_context_docs=1, feature_length_strategy="balanced",
             max_context_length=1000, max_feature_length=100, feature_length_threshold=80,
         ):
         # retrieval
-        retrieval_docs = self.vector_store.search(self.vector_embedding.get_vectorembedding(question))
+        retrieval_docs = self.vector_store.search(self.vector_embedding.get_vectorembedding(searching_query))
         # create context from retrieved documents
         feature_names = vector_data.get_df_doc().columns
         context = []
@@ -113,9 +123,10 @@ Answer: """
         else:
             for idx, doc_id in enumerate(retrieval_docs["doc_id"].iloc[:num_context_docs]):
                 context.append(f"[{doc_keyword}{idx+1}]\n" + "\n".join([f"{k.split('_')[-1]}: {v[:max_len]}" for max_len, (k, v) in zip([max_feature_length] * len(feature_names), vector_data.get_df_doc().loc[doc_id].items())]))
-        context = "\n".join(context)
+        # cut text with max value
+        context = "\n".join(context)[:(max_context_length + len(context))]
         # create prompt
-        prompt = prompt.replace("{context}", context).replace("{question}", question)
+        prompt = prompt.replace("{search_query}", search_query).replace("{context}", context).replace("{question}", question)
         # tokenizing
         tokens = self.tokenize(prompt)
         # generate
