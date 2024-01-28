@@ -111,7 +111,7 @@ Response: """
             max_context_length=1000, max_feature_length=100, feature_length_threshold=80,
         ):
         # retrieval
-        retrieval_docs = self.vector_store.search(self.vector_embedding.get_vectorembedding(searching_query))
+        retrieval_docs = self.vector_store.search(self.vector_embedding.get_vectorembedding(search_query))
         # create context from retrieved documents
         feature_names = vector_data.get_df_doc().columns
         context = []
