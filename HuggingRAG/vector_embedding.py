@@ -37,7 +37,7 @@ class VectorEmbedding():
         self.max_length = AutoConfig.from_pretrained(model_id).max_position_embeddings if max_length is None else max_length
         self.tokenizer = AutoTokenizer.from_pretrained(model_id)
         self.tokenizer_params = {
-            "max_length": max_length,
+            "max_length": self.max_length,
             "padding": "max_length",
             "truncation": True,
             "return_attention_mask": True,
