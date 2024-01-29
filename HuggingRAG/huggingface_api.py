@@ -12,7 +12,8 @@ from torch.utils.data import TensorDataset
 """## Generation with Retrieval Documents"""
 
 class HuggingFaceAPI():
-    def __init__(self, model_id, tokenizer_max_length, vector_embedding, vector_store, quantization_params=None, device="cpu"):
+    def __init__(self, model_id, tokenizer_max_length, vector_data, vector_embedding, vector_store, quantization_params=None, device="cpu"):
+        self.vector_data = vector_data
         self.vector_embedding = vector_embedding
         self.vector_store = vector_store
         self.model_id = model_id
@@ -93,7 +94,7 @@ Response: """
         return prompt
 
     def generate(
-            self, prompt, search_query, question, vector_data, doc_keyword="Document", generation_params={},
+            self, prompt, search_query, question, doc_keyword="Document", generation_params={},
             num_context_docs=1, feature_length_strategy="balanced", max_context_length=1000, max_feature_length=100, feature_length_threshold=80,
         ):
         if generation_params is True:
@@ -113,16 +114,16 @@ Response: """
         # retrieval
         retrieval_docs = self.vector_store.search(self.vector_embedding.get_vectorembedding(search_query))
         # create context from retrieved documents
-        feature_names = vector_data.get_df_doc().columns
+        feature_names = self.vector_data.get_df_doc().columns
         context = []
         if feature_length_strategy == "balanced":
-            feature_lengths = np.array([np.percentile(vector_data.get_df_doc()[col].apply(len), feature_length_threshold) for col in feature_names])
+            feature_lengths = np.array([np.percentile(self.vector_data.get_df_doc()[col].apply(len), feature_length_threshold) for col in feature_names])
             feature_lengths = ((feature_lengths / feature_lengths.sum()) * max_context_length).astype("int32")
             for idx, doc_id in enumerate(retrieval_docs["doc_id"].iloc[:num_context_docs]):
-                context.append(f"[{doc_keyword} {idx+1}]\n" + "\n".join([f"{k.split('_')[-1]}: {v[:max_len]}" for max_len, (k, v) in zip(feature_lengths, vector_data.get_df_doc().loc[doc_id].items())]))
+                context.append(f"[{doc_keyword} {idx+1}]\n" + "\n".join([f"{k.split('_')[-1]}: {v[:max_len]}" for max_len, (k, v) in zip(feature_lengths, self.vector_data.get_df_doc().loc[doc_id].items())]))
         else:
             for idx, doc_id in enumerate(retrieval_docs["doc_id"].iloc[:num_context_docs]):
-                context.append(f"[{doc_keyword} {idx+1}]\n" + "\n".join([f"{k.split('_')[-1]}: {v[:max_len]}" for max_len, (k, v) in zip([max_feature_length] * len(feature_names), vector_data.get_df_doc().loc[doc_id].items())]))
+                context.append(f"[{doc_keyword} {idx+1}]\n" + "\n".join([f"{k.split('_')[-1]}: {v[:max_len]}" for max_len, (k, v) in zip([max_feature_length] * len(feature_names), self.vector_data.get_df_doc().loc[doc_id].items())]))
         # cut text with max value
         context = "\n".join(context)[:(max_context_length + len(context))]
         # create prompt
