@@ -29,12 +29,12 @@ class MeanPooling(nn.Module):
         return mean_embeddings
     
 class VectorEmbedding():
-    def __init__(self, model_id, max_length=None, device='cpu'):
+    def __init__(self, model_id, tokenizer_max_length, device='cpu'):
         self.vectors = None
         self.store = None
         self.model_id = model_id
         self.device = torch.device("cuda" if device == "gpu" else device)
-        self.max_length = AutoConfig.from_pretrained(model_id).max_position_embeddings if max_length is None else max_length
+        self.max_length = tokenizer_max_length
         self.tokenizer = AutoTokenizer.from_pretrained(model_id)
         self.tokenizer_params = {
             "max_length": self.max_length,

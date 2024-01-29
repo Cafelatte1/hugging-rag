@@ -1,0 +1,10 @@
+LICENSE
+README.md
+custom_langchain.py
+setup.py
+hugging_rag.egg-info/PKG-INFO
+hugging_rag.egg-info/SOURCES.txt
+hugging_rag.egg-info/dependency_links.txt
+hugging_rag.egg-info/not-zip-safe
+hugging_rag.egg-info/requires.txt
+hugging_rag.egg-info/top_level.txt
