@@ -110,6 +110,7 @@ Response: """
                 "no_repeat_ngram_size": 3,
             }
             generation_params["early_stopping"] = True if generation_params["num_beams"] > 1 else False
+        generation_params["eos_token_id"] = [self.tokenizer.eos_token_id, self.tokenizer.pad_token_id]
         # retrieval
         retrieval_docs = self.vector_store.search(self.vector_embedding.get_vectorembedding(search_query))
         # create context from retrieved documents
