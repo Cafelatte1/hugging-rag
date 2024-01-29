@@ -34,7 +34,7 @@ class HuggingFaceAPI():
         self.device = torch.device("cuda" if device == "gpu" else device)
         self.max_length = tokenizer_max_length
         self.tokenizer = AutoTokenizer.from_pretrained(model_id, padding_side="left")
-        self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
+        # self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
         self.tokenizer_params = {
             "max_length": self.max_length,
             "padding": "max_length",
@@ -108,7 +108,6 @@ Response: """
                 "length_penalty": 1.0,
                 "repetition_penalty": 1.2,
                 "no_repeat_ngram_size": 3,
-                "eos_token_id": 2,
             }
             generation_params["early_stopping"] = True if generation_params["num_beams"] > 1 else False
         # retrieval
