@@ -12,7 +12,7 @@ from torch.utils.data import TensorDataset
 """## Generation with Retrieval Documents"""
 
 class HuggingFaceAPI():
-    def __init__(self, model_id, vector_embedding, vector_store, quantization_params=None, max_length=None, device="cpu"):
+    def __init__(self, model_id, tokenizer_max_length, vector_embedding, vector_store, quantization_params=None, device="cpu"):
         self.vector_embedding = vector_embedding
         self.vector_store = vector_store
         self.model_id = model_id
@@ -31,7 +31,7 @@ class HuggingFaceAPI():
             )
         self.quantization_params = quantization_params
         self.device = torch.device("cuda" if device == "gpu" else device)
-        self.max_length = AutoConfig.from_pretrained(model_id).max_position_embeddings if max_length is None else max_length
+        self.max_length = tokenizer_max_length
         self.tokenizer = AutoTokenizer.from_pretrained(model_id, padding_side="left")
         self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
         self.tokenizer_params = {
