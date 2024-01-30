@@ -17,7 +17,7 @@ class HuggingFaceAPI():
         self.vector_embedding = vector_embedding
         self.vector_store = vector_store
         self.model_id = model_id
-        if quantization_params is True:
+        if (not isinstance(quantization_params, dict)) and (quantization_params is True):
             quantization_params = BitsAndBytesConfig(
                 # 4bit quantization
                 load_in_4bit=True,
@@ -42,7 +42,7 @@ class HuggingFaceAPI():
             "return_token_type_ids": False,
             "return_tensors": "pt"
         }
-        if (not isinstance(quantization_params, dict)) and (quantization_params is not None):
+        if quantization_params:
             self.model = AutoModelForCausalLM.from_pretrained(model_id, quantization_config=quantization_params, device_map="auto")
         else:
             self.model = AutoModelForCausalLM.from_pretrained(model_id)
