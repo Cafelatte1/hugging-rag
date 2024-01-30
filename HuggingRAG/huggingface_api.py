@@ -131,15 +131,11 @@ Response: """
         # generate
         start_time = time.time()
         with torch.no_grad():
-            for batch in DataLoader(TensorDataset(tokens["input_ids"], tokens["attention_mask"]), batch_size=1, shuffle=False):
-                batch[0] = batch[0].to(self.device)
-                batch[1] = batch[1].to(self.device)
-                gened = self.model.generate(
-                    **{"input_ids": batch[0], "attention_mask": batch[1]},
-                    **generation_params,
-                )
-                break
-            response = self.tokenizer.batch_decode(gened, skip_special_tokens=True)[0]
+            gened = self.model.generate(
+                **{"input_ids": tokens["input_ids"].to(self.device), "attention_mask": tokens["attention_mask"].to(self.device)},
+                **generation_params,
+            )
+        response = self.tokenizer.batch_decode(gened, skip_special_tokens=True)[0]
         end_time = time.time()
         # decoding
         output = {
