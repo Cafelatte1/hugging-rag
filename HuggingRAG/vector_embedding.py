@@ -71,8 +71,9 @@ class VectorEmbedding():
                 torch.cuda.empty_cache()
                 gc.collect()
         del pooler, tokens, dl
+        embed = torch.cat(embed, dim=0).to(torch.float32)
+        embed = F.normalize(embed, p=2, dim=1).detach().cpu().numpy() if norm else embed.detach().cpu().numpy()
+        self.model.to(torch.device("cpu"))
         torch.cuda.empty_cache()
         gc.collect()
-        embed = torch.cat(embed, dim=0).to(torch.float32)
-        self.model.to(torch.device("cpu"))
-        return F.normalize(embed, p=2, dim=1).detach().cpu().numpy() if norm else embed.detach().cpu().numpy()
+        return embed
