@@ -25,7 +25,7 @@ class FaissVectorStore():
             self.store = faiss.index_cpu_to_gpu(faiss.StandardGpuResources(), 0, self.store)
         self.store.add(embedding)
 
-    def search(self, embedding, use_gpu=False):
+    def search(self, embedding, use_gpu=False, excluding_zero_score=True):
         # transform (E) -> (1, E)
         if len(embedding.shape) == 1:
             embedding = embedding.reshape(1, -1)
@@ -34,4 +34,4 @@ class FaissVectorStore():
         if self.similarity_algorithm == "dot_product":
             scores = ((scores + 1.0) / 2.0)
         # ranking
-        return self.ranker(self.corpus_container, scores, indicies)
+        return self.ranker(self.corpus_container, scores, indicies, excluding_zero_score)

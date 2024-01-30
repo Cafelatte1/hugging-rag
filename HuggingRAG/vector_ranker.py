@@ -11,7 +11,7 @@ class VectorRanker():
         else:
             self.ranking_type = ranking_type
 
-    def __call__(self, corpus_container, scores, indicies, excluding_zero_score=True):
+    def __call__(self, corpus_container, scores, indicies, excluding_zero_score):
         corpus_container["scores"] = 0.0
         # get averaged score on each documents
         # average score by equal weight and get Top N docs
