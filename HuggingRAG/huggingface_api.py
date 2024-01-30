@@ -42,7 +42,7 @@ class HuggingFaceAPI():
             "return_tensors": "pt"
         }
         if quantization_params is not None:
-            self.model = AutoModelForCausalLM.from_pretrained(model_id, quantization_config=quantization_params, device_map="auto")
+            self.model = AutoModelForCausalLM.from_pretrained(model_id, quantization_config=quantization_params, device_map="cuda")
         else:
             self.model = AutoModelForCausalLM.from_pretrained(model_id)
             self.model.to(self.device)

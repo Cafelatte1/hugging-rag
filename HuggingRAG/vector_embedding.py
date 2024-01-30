@@ -6,7 +6,7 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 from torch.utils.data import TensorDataset, DataLoader
-from transformers import AutoTokenizer, AutoModel, AutoConfig
+from transformers import AutoTokenizer, AutoModel
 from torch.utils.data import TensorDataset
 
 """## Create Vector Embedding"""
@@ -45,7 +45,6 @@ class VectorEmbedding():
             "return_tensors": "pt"
         }
         self.model = AutoModel.from_pretrained(model_id)
-        self.model.to(self.device)
         self.model.eval()
 
     def tokenize(self, x):
@@ -55,6 +54,7 @@ class VectorEmbedding():
         return tokens
 
     def get_vectorembedding(self, docs, batch_size=32, norm=True):
+        self.model.to(self.device)
         embed = []
         pooler = MeanPooling()
         tokens = self.tokenize([docs] if isinstance(docs, str) else docs)
@@ -74,4 +74,5 @@ class VectorEmbedding():
         torch.cuda.empty_cache()
         gc.collect()
         embed = torch.cat(embed, dim=0).to(torch.float32)
+        self.model.to(torch.device("cpu"))
         return F.normalize(embed, p=2, dim=1).detach().cpu().numpy() if norm else embed.detach().cpu().numpy()
