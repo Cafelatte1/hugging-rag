@@ -54,7 +54,7 @@ class VectorEmbedding():
         )
         return tokens
 
-    def get_vectorembedding(self, docs, batch_size=128, norm=True):
+    def get_vectorembedding(self, docs, batch_size=32, norm=True):
         embed = []
         pooler = MeanPooling()
         tokens = self.tokenize([docs] if isinstance(docs, str) else docs)
