@@ -89,7 +89,7 @@ Response: """
 
     def generate(
             self, prompt, search_query, question, doc_keyword="Document", generation_params="auto",
-            num_context_docs=1, feature_length_strategy="balanced", max_context_length=1000, max_feature_length=100, feature_length_threshold=80,
+            num_context_docs=1, feature_length_strategy="balanced", max_context_length=750, max_feature_length=500, feature_length_threshold=95,
         ):
         if generation_params == "auto":
             generation_params = {
@@ -112,7 +112,7 @@ Response: """
         context = []
         if feature_length_strategy == "balanced":
             feature_lengths = np.array([np.percentile(self.vector_data.get_df_doc()[col].apply(len), feature_length_threshold) for col in feature_names])
-            feature_lengths = ((feature_lengths / feature_lengths.sum()) * max_context_length).astype("int32")
+            feature_lengths = ((feature_lengths / feature_lengths.sum()) * max_feature_length).astype("int32")
             for idx, doc_id in enumerate(retrieval_docs["doc_id"].iloc[:num_context_docs]):
                 context.append(f"[{doc_keyword} {idx+1}]\n" + "\n".join([f"{k.split('_')[-1]}: {v[:max_len]}" for max_len, (k, v) in zip(feature_lengths, self.vector_data.get_df_doc().loc[doc_id].items())]))
         else:
