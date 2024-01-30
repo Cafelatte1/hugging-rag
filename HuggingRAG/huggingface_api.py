@@ -42,7 +42,7 @@ class HuggingFaceAPI():
             "return_token_type_ids": False,
             "return_tensors": "pt"
         }
-        if quantization_params is not None:
+        if (not isinstance(quantization_params, dict)) and (quantization_params is not None):
             self.model = AutoModelForCausalLM.from_pretrained(model_id, quantization_config=quantization_params, device_map="auto")
         else:
             self.model = AutoModelForCausalLM.from_pretrained(model_id)
@@ -96,7 +96,7 @@ Response: """
             self, prompt, search_query, question, doc_keyword="Document", generation_params={},
             num_context_docs=1, feature_length_strategy="balanced", max_context_length=1000, max_feature_length=100, feature_length_threshold=80,
         ):
-        if generation_params is True:
+        if (not isinstance(generation_params, dict)) and (generation_params is True):
             generation_params = {
                 "max_new_tokens": 300,
                 "num_beams": 3,
