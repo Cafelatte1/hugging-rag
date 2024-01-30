@@ -89,7 +89,7 @@ Response: """
 
     def generate(
             self, prompt, search_query, question, doc_keyword="Document", generation_params="auto",
-            num_context_docs=1, feature_length_strategy="balanced", max_context_length=800, max_feature_length=500, feature_length_threshold=95,
+            num_context_docs=1, feature_length_strategy="balanced", max_context_length=750, max_feature_length=500, feature_length_threshold=95,
         ):
         if generation_params == "auto":
             generation_params = {
