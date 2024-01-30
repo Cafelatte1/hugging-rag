@@ -21,14 +21,12 @@ class HuggingFaceAPI():
             quantization_params = BitsAndBytesConfig(
                 # 4bit quantization
                 load_in_4bit=True,
-                # use double quantization
-                bnb_4bit_use_double_quant=True,
                 # set data type in saving the weights
                 bnb_4bit_quant_type="nf4",
+                # use double quantization
+                bnb_4bit_use_double_quant=True,
                 # set data type in calculating the weights
-                bnb_4bit_compute_dtype=torch.bfloat16,
-                # set device
-                device_map="auto",
+                bnb_4bit_compute_dtype=torch.bfloat16,    
             )
         self.quantization_params = quantization_params
         self.device = torch.device("cuda" if device == "gpu" else device)
@@ -44,7 +42,7 @@ class HuggingFaceAPI():
             "return_tensors": "pt"
         }
         if quantization_params is not None:
-            self.model = AutoModelForCausalLM.from_pretrained(model_id, quantization_config=quantization_params)
+            self.model = AutoModelForCausalLM.from_pretrained(model_id, quantization_config=quantization_params, device_map="auto")
         else:
             self.model = AutoModelForCausalLM.from_pretrained(model_id)
             self.model.to(self.device)
