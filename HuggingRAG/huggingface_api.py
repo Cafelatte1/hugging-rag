@@ -19,12 +19,12 @@ class HuggingFaceAPI():
         self.model_id = model_id
         self.device = torch.device("cuda" if device == "gpu" else device)
         self.max_length = tokenizer_max_length
-        self.tokenizer = AutoTokenizer.from_pretrained(model_id, padding_side="left")
+        self.tokenizer = AutoTokenizer.from_pretrained(model_id, truncation_side="left")
         self.tokenizer.pad_token = self.tokenizer.eos_token
         self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
         self.tokenizer_params = {
             "max_length": self.max_length,
-            "padding": "max_length",
+            "padding": False,
             "truncation": True,
             "return_attention_mask": True,
             "return_token_type_ids": False,
@@ -58,9 +58,8 @@ class HuggingFaceAPI():
 
     def create_prompt_template(self, lang="kor"):
         if lang in ["kr", "kor"]:
-            prompt = """지시문: 검색된 문서는 검색 키워드를 통해 검색된 문서들의 정보 입니다.
+            prompt = """지시문: 검색된 문서들을 참고하여 요청에 알맞는 답변을 해주세요.
 검색된 문서들은 ``` 구분자 안에 [Document N] 형식으로 있습니다.
-검색된 문서들을 참고하여 요청에 알맞는 답변을 해주세요.
 모르는 요청이면 '잘 모르겠습니다.'라고 답변해주세요.
 
 검색 키워드: {search_query}
@@ -74,12 +73,9 @@ class HuggingFaceAPI():
 
 답변: """
         else:
-            prompt = """Instructions: The retrieved documents contain information on the documents found through the search keyword.
+            prompt = """Instructions: Please refer to the searched documents to provide an appropriate response to the request.
 The searched documents are in the format [Document N] within the ``` delimiter.
-Please refer to the searched documents to provide an appropriate response to the request.
 If you do not know the request, please respond with 'I don't know.'
-
-Search keyword: {search_query}
 
 Searched documents:
 ```
@@ -125,7 +121,7 @@ Response: """
         # cut text with max value
         context = "\n".join(context)[:(max_context_length + len(context))]
         # create prompt
-        prompt = prompt.replace("{search_query}", search_query).replace("{context}", context).replace("{question}", question)
+        prompt = prompt.replace("{context}", context).replace("{question}", question)
         # tokenizing
         tokens = self.tokenize(prompt)
         # generate
