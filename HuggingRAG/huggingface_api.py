@@ -12,23 +12,11 @@ from torch.utils.data import TensorDataset
 """## Generation with Retrieval Documents"""
 
 class HuggingFaceAPI():
-    def __init__(self, model_id, tokenizer_max_length, vector_data, vector_embedding, vector_store, quantization_params=None, device="cpu"):
+    def __init__(self, model_id, tokenizer_max_length, vector_data, vector_embedding, vector_store, quantization_params="auto", device="cpu"):
         self.vector_data = vector_data
         self.vector_embedding = vector_embedding
         self.vector_store = vector_store
         self.model_id = model_id
-        if (not isinstance(quantization_params, dict)) and (quantization_params is True):
-            quantization_params = BitsAndBytesConfig(
-                # 4bit quantization
-                load_in_4bit=True,
-                # set data type in saving the weights
-                bnb_4bit_quant_type="nf4",
-                # use double quantization
-                bnb_4bit_use_double_quant=True,
-                # set data type in calculating the weights
-                bnb_4bit_compute_dtype=torch.bfloat16,    
-            )
-        self.quantization_params = quantization_params
         self.device = torch.device("cuda" if device == "gpu" else device)
         self.max_length = tokenizer_max_length
         self.tokenizer = AutoTokenizer.from_pretrained(model_id, padding_side="left")
@@ -42,7 +30,18 @@ class HuggingFaceAPI():
             "return_token_type_ids": False,
             "return_tensors": "pt"
         }
-        if quantization_params:
+        if quantization_params is not None:
+            if quantization_params == "auto":
+                quantization_params = BitsAndBytesConfig(
+                    # 4bit quantization
+                    load_in_4bit=True,
+                    # set data type in saving the weights
+                    bnb_4bit_quant_type="nf4",
+                    # use double quantization
+                    bnb_4bit_use_double_quant=True,
+                    # set data type in calculating the weights
+                    bnb_4bit_compute_dtype=torch.bfloat16,    
+                )
             self.model = AutoModelForCausalLM.from_pretrained(model_id, quantization_config=quantization_params, device_map="auto")
         else:
             self.model = AutoModelForCausalLM.from_pretrained(model_id)
@@ -93,10 +92,10 @@ Response: """
         return prompt
 
     def generate(
-            self, prompt, search_query, question, doc_keyword="Document", generation_params={},
+            self, prompt, search_query, question, doc_keyword="Document", generation_params="auto",
             num_context_docs=1, feature_length_strategy="balanced", max_context_length=1000, max_feature_length=100, feature_length_threshold=80,
         ):
-        if (not isinstance(generation_params, dict)) and (generation_params is True):
+        if generation_params == "auto":
             generation_params = {
                 "max_new_tokens": 300,
                 "num_beams": 3,
