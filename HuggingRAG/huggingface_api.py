@@ -32,7 +32,8 @@ class HuggingFaceAPI():
         self.device = torch.device("cuda" if device == "gpu" else device)
         self.max_length = tokenizer_max_length
         self.tokenizer = AutoTokenizer.from_pretrained(model_id, padding_side="left")
-        # self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
+        self.tokenizer.pad_token = self.tokenizer.eos_token
+        self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
         self.tokenizer_params = {
             "max_length": self.max_length,
             "padding": "max_length",
@@ -47,7 +48,7 @@ class HuggingFaceAPI():
             self.model = AutoModelForCausalLM.from_pretrained(model_id)
             self.model.to(self.device)
         self.model.eval()
-        # self.model.generation_config.pad_token_id = self.model.generation_config.eos_token_id
+        self.model.generation_config.pad_token_id = self.model.generation_config.eos_token_id
         self.model.config.use_cache = True
 
     def tokenize(self, x):
@@ -108,7 +109,7 @@ Response: """
                 "no_repeat_ngram_size": 3,
             }
             generation_params["early_stopping"] = True if generation_params["num_beams"] > 1 else False
-        # generation_params["eos_token_id"] = [self.tokenizer.eos_token_id, self.tokenizer.pad_token_id]
+        generation_params["eos_token_id"] = [self.tokenizer.eos_token_id, self.tokenizer.pad_token_id]
         # retrieval
         retrieval_docs = self.vector_store.search(self.vector_embedding.get_vectorembedding(search_query))
         # create context from retrieved documents
