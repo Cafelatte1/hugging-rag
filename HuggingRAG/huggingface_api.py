@@ -37,7 +37,7 @@ class HuggingFaceAPI():
                     # use double quantization
                     bnb_4bit_use_double_quant=True,
                     # set data type in calculating the weights
-                    bnb_4bit_compute_dtype=torch.bfloat16,    
+                    bnb_4bit_compute_dtype=torch.bfloat16,
                 )
             self.model = AutoModelForCausalLM.from_pretrained(model_id, quantization_config=quantization_params, device_map="auto")
         else:
@@ -58,8 +58,6 @@ class HuggingFaceAPI():
             prompt = """지시문: 검색된 문서들을 참고하여 요청에 알맞는 답변을 해주세요.
 검색된 문서들은 ``` 구분자 안에 [Document N] 형식으로 있습니다.
 모르는 요청이면 '잘 모르겠습니다.'라고 답변해주세요.
-
-검색 키워드: {search_query}
 
 검색된 문서
 ```
@@ -113,7 +111,7 @@ Response: """
             for idx, doc_id in enumerate(retrieval_docs["doc_id"].iloc[:num_context_docs]):
                 context.append(f"[{doc_keyword} {idx+1}]\n" + "\n".join([f"{k.split('_')[-1]}: {v[:max_len]}" for max_len, (k, v) in zip(feature_lengths, self.vector_data.get_df_doc().loc[doc_id].items())]))
         else:
-            feature_lengths = (1 / (len(feature_names) + 1e-7))
+            feature_lengths = (np.array(1 / (len(feature_names) + 1e-7) ) * max_feature_length).astype("int32")
             for idx, doc_id in enumerate(retrieval_docs["doc_id"].iloc[:num_context_docs]):
                 context.append(f"[{doc_keyword} {idx+1}]\n" + "\n".join([f"{k.split('_')[-1]}: {v[:max_len]}" for max_len, (k, v) in zip([max_feature_length] * len(feature_names), self.vector_data.get_df_doc().loc[doc_id].items())]))
         # cut text with max value
