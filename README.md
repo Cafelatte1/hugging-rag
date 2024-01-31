@@ -1,2 +1,2 @@
-# HuggingRAG
-High-Level Library for RAG task with HuggingFace API
+# Hugging-RAG
+High-Level Library for RAG task with Huggingface API
