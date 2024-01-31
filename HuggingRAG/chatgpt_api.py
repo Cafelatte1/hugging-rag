@@ -6,11 +6,12 @@ from openai import OpenAI
 """## Generation with Retrieval Documents"""
 
 class ChatGPTAPI():
-    def __init__(self, model_id, vector_data, vector_embedding, vector_store):
+    def __init__(self, model_id, max_len, vector_data, vector_embedding, vector_store):
         self.vector_data = vector_data
         self.vector_embedding = vector_embedding
         self.vector_store = vector_store
         self.model_id = model_id
+        self.max_len = max_len
         self.client = OpenAI()
 
     def create_prompt_template(self, lang="kor"):
@@ -51,7 +52,7 @@ Request: {question}"""
         return prompt
 
     def generate(
-            self, prompt, search_query, question, doc_keyword="Document", generation_params="auto",
+            self, prompt, search_query, question, doc_keyword="Document",
             num_context_docs=1, feature_length_strategy="balanced", max_feature_length=500, feature_length_threshold=95,
         ):
         # retrieval
@@ -72,6 +73,7 @@ Request: {question}"""
         context = "\n".join(context)
         # create prompt
         prompt = prompt["request"]["content"].replace("{context}", context).replace("{question}", question)
+        prompt["request"]["content"] = prompt["request"]["content"][:self.max_len]
         # generate
         start_time = time.time()
         gened = self.client.chat.completions.create(
