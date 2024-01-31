@@ -62,7 +62,7 @@ class HuggingFaceVectorEmbedding():
         with torch.no_grad():
             for batch in tqdm(dl):
                 output = self.model(**{"input_ids": batch[0].to(self.device), "attention_mask": batch[1].to(self.device)})
-                embed.append(pooler(output.last_hidden_state, batch[1]).to(torch.float32))
+                embed.append(pooler(output.last_hidden_state, batch[1].to(self.device)).to(torch.float32))
                 del batch, output
                 torch.cuda.empty_cache()
                 gc.collect()
