@@ -6,8 +6,7 @@ from openai import OpenAI
 """## Generation with Retrieval Documents"""
 
 class ChatGPTAPI():
-    def __init__(self, model_id, max_len, vector_data, vector_embedding, vector_store):
-        self.vector_data = vector_data
+    def __init__(self, model_id, max_len, vector_embedding, vector_store):
         self.vector_embedding = vector_embedding
         self.vector_store = vector_store
         self.model_id = model_id
