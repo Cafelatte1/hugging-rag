@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 import time
-import torch
 from openai import OpenAI
 
 """## Generation with Retrieval Documents"""
