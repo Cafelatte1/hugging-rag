@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(
-    name="Hugging-RAG",
+    name="HuggingRAG",
     version="0.0.7",
     description="High-level library for RAG task with huggingface API",
     url="https://github.com/Cafelatte1/hugging-rag",
