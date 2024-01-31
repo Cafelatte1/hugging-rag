@@ -17,7 +17,7 @@ class VectorDataContainer():
         else:
             self.text_splitter = text_splitter
 
-    def get_vectordata(self, doc_id, doc_features):
+    def get_vector_data(self, doc_id, doc_features):
         self.df_doc = pd.DataFrame(doc_features)
         self.df_doc.index = doc_id
         df_doc_feature = []

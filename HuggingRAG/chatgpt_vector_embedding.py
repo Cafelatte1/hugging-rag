@@ -16,7 +16,7 @@ class ChatGPTVectorEmbedding():
         self.max_len = max_len
         self.client = OpenAI()
 
-    def get_vectorembedding(self, docs, batch_size=32, norm=True):
+    def get_vector_embedding(self, docs, batch_size=32, norm=True):
         docs = [docs] if isinstance(docs, str) else docs
         dl = DataLoader(docs, batch_size=batch_size, shuffle=False)
         embed = []

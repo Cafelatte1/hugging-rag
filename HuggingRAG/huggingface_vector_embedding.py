@@ -53,7 +53,7 @@ class HuggingFaceVectorEmbedding():
         )
         return tokens
 
-    def get_vectorembedding(self, docs, batch_size=32, norm=True):
+    def get_vector_embedding(self, docs, batch_size=32, norm=True):
         self.model.to(self.device)
         pooler = MeanPooling()
         tokens = self.tokenize([docs] if isinstance(docs, str) else docs)
