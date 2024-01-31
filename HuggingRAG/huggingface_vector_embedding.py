@@ -28,7 +28,7 @@ class MeanPooling(nn.Module):
         mean_embeddings = sum_embeddings / sum_mask
         return mean_embeddings
     
-class VectorEmbedding():
+class HuggingFaceVectorEmbedding():
     def __init__(self, model_id, tokenizer_max_length, device='cpu'):
         self.vectors = None
         self.store = None
@@ -60,12 +60,8 @@ class VectorEmbedding():
         tokens = self.tokenize([docs] if isinstance(docs, str) else docs)
         dl = DataLoader(TensorDataset(tokens["input_ids"], tokens["attention_mask"]), batch_size=batch_size, shuffle=False)
         with torch.no_grad():
-            for idx, batch in enumerate(tqdm(dl)):
-                # input_ids
-                batch[0] = batch[0].to(self.device)
-                # attention_mask
-                batch[1] = batch[1].to(self.device)
-                output = self.model(**{"input_ids": batch[0], "attention_mask": batch[1]})
+            for batch in tqdm(dl):
+                output = self.model(**{"input_ids": batch[0].to(self.device), "attention_mask": batch[1].to(self.device)})
                 embed.append(pooler(output.last_hidden_state, batch[1]))
                 del batch, output
                 torch.cuda.empty_cache()
