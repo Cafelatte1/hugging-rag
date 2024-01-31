@@ -83,7 +83,7 @@ Request: {question}"""
         # generate
         start_time = time.time()
         gened = self.client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model=self.model_id,
             messages=[
                 prompt["instruction"],
                 prompt["request"],
