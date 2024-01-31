@@ -4,10 +4,7 @@ import time
 import torch
 from torch import nn
 import torch.nn.functional as F
-from torch.utils.data import Dataset, TensorDataset, DataLoader
-import transformers
-from transformers import AutoTokenizer, AutoModelForCausalLM, AutoConfig, BitsAndBytesConfig
-from torch.utils.data import TensorDataset
+from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 
 """## Generation with Retrieval Documents"""
 
@@ -89,7 +86,7 @@ Response: """
 
     def generate(
             self, prompt, search_query, question, doc_keyword="Document", generation_params="auto",
-            num_context_docs=1, feature_length_strategy="balanced", max_context_length=750, max_feature_length=500, feature_length_threshold=95,
+            num_context_docs=1, feature_length_strategy="balanced", max_feature_length=500, feature_length_threshold=95,
         ):
         if generation_params == "auto":
             generation_params = {
@@ -112,14 +109,15 @@ Response: """
         context = []
         if feature_length_strategy == "balanced":
             feature_lengths = np.array([np.percentile(self.vector_data.get_df_doc()[col].apply(len), feature_length_threshold) for col in feature_names])
-            feature_lengths = ((feature_lengths / feature_lengths.sum()) * max_feature_length).astype("int32")
+            feature_lengths = ((feature_lengths / (feature_lengths.sum() + 1e-7)) * max_feature_length).astype("int32")
             for idx, doc_id in enumerate(retrieval_docs["doc_id"].iloc[:num_context_docs]):
                 context.append(f"[{doc_keyword} {idx+1}]\n" + "\n".join([f"{k.split('_')[-1]}: {v[:max_len]}" for max_len, (k, v) in zip(feature_lengths, self.vector_data.get_df_doc().loc[doc_id].items())]))
         else:
+            feature_lengths = (1 / (len(feature_names) + 1e-7))
             for idx, doc_id in enumerate(retrieval_docs["doc_id"].iloc[:num_context_docs]):
                 context.append(f"[{doc_keyword} {idx+1}]\n" + "\n".join([f"{k.split('_')[-1]}: {v[:max_len]}" for max_len, (k, v) in zip([max_feature_length] * len(feature_names), self.vector_data.get_df_doc().loc[doc_id].items())]))
         # cut text with max value
-        context = "\n".join(context)[:(max_context_length + len(context))]
+        context = "\n".join(context)
         # create prompt
         prompt = prompt.replace("{context}", context).replace("{question}", question)
         # tokenizing
