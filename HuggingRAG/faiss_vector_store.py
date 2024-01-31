@@ -4,7 +4,7 @@ import faiss
 
 class FaissVectorStore():
     def __init__(self, vector_data, ranker, similarity_algorithm="dot_product", k=1_000_000):
-        self.corpus_container = vector_data.get_df_doc_feature()[["doc_id"]]
+        self.corpus_container = vector_data.get_df_doc_feature()[["doc_id", "chunk_id"]]
         self.corpus_container["scores"] = 0.0
         self.corpus_container["scores"] = self.corpus_container["scores"].astype("float32")
         self.store = None

@@ -44,5 +44,9 @@ class VectorRanker():
             else:
                 candidates = corpus_container.sort_values("scores", ascending=False).iloc[:self.topN_chunks]
             retrieval_docs = candidates.drop_duplicates(subset="doc_id")
-        retrieval_docs = retrieval_docs["doc_id"].iloc[:self.n_retrievals]
-        return pd.concat([corpus_container[corpus_container["doc_id"] == doc_id].sort_values("scores", ascending=False) for doc_id in retrieval_docs.values], axis=0).reset_index(drop=True)
+        retrieval_docs = retrieval_docs.iloc[:self.n_retrievals]
+        output = {
+            "score_by_docs": retrieval_docs.reset_index(drop=True),
+            "score_by_chunks": pd.concat([corpus_container[corpus_container["doc_id"] == doc_id].sort_values("scores", ascending=False) for doc_id in retrieval_docs["doc_id"]], axis=0).reset_index(drop=True)
+        }
+        return output

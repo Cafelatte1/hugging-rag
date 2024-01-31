@@ -42,7 +42,7 @@ If you do not know the request, please respond with 'I don't know.'."""
             }
             prompt["request"] = {
                 "role": "user",
-                "content": """Searched documents:
+                "content": """Searched documents
 ```
 {context}
 ```
@@ -53,7 +53,7 @@ Request: {question}"""
 
     def generate(
             self, prompt, search_query, question, generation_params=None, doc_keyword="Document",
-            num_context_docs=1, feature_length_strategy="balanced", max_feature_length=768, feature_length_threshold=95,
+            num_context_docs=1, feature_length_strategy="balanced", max_feature_length=768, feature_length_threshold=95, reformat_output=True,
         ):
         if generation_params == "auto":
             generation_params = {
@@ -70,16 +70,16 @@ Request: {question}"""
         if feature_length_strategy == "balanced":
             feature_lengths = np.array([np.percentile(self.vector_data.get_df_doc()[col].apply(len), feature_length_threshold) for col in feature_names])
             feature_lengths = ((feature_lengths / (feature_lengths.sum() + 1e-7)) * max_feature_length).astype("int32")
-            for idx, doc_id in enumerate(retrieval_docs["doc_id"].iloc[:num_context_docs]):
+            for idx, doc_id in enumerate(retrieval_docs["score_by_docs"]["doc_id"].iloc[:num_context_docs]):
                 context.append(f"[{doc_keyword} {idx+1}]\n" + "\n".join([f"{k.split('_')[-1]}: {v[:max_len]}" for max_len, (k, v) in zip(feature_lengths, self.vector_data.get_df_doc().loc[doc_id].items())]))
         else:
-            feature_lengths = (np.array(1 / (len(feature_names) + 1e-7) ) * max_feature_length).astype("int32")
-            for idx, doc_id in enumerate(retrieval_docs["doc_id"].iloc[:num_context_docs]):
+            feature_lengths = (np.array(1 / (len(feature_names) + 1e-7)) * max_feature_length).astype("int32")
+            for idx, doc_id in enumerate(retrieval_docs["score_by_docs"]["doc_id"].iloc[:num_context_docs]):
                 context.append(f"[{doc_keyword} {idx+1}]\n" + "\n".join([f"{k.split('_')[-1]}: {v[:max_len]}" for max_len, (k, v) in zip([max_feature_length] * len(feature_names), self.vector_data.get_df_doc().loc[doc_id].items())]))
         # cut text with max value
         context = "\n".join(context)
         # create prompt
-        prompt = prompt["request"]["content"].replace("{context}", context).replace("{question}", question)
+        prompt["request"]["content"] = prompt["request"]["content"].replace("{context}", context).replace("{question}", question)
         prompt["request"]["content"] = prompt["request"]["content"][:self.max_len]
         # generate
         start_time = time.time()
@@ -91,9 +91,15 @@ Request: {question}"""
             ],
             **generation_params
         )
-        response = gened.choices[0].message
+        response = gened.choices[0].message.content
+        if reformat_output:
+            response = "\n\n".join([
+                prompt["instruction"]["content"],
+                prompt["request"]["content"],
+                f"Response: {response}"
+            ])  
         end_time = time.time()
-        # decoding
+        # return output
         output = {
             "retrieval_docs": retrieval_docs,
             "response": response,
