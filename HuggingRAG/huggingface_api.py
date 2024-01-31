@@ -9,8 +9,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 """## Generation with Retrieval Documents"""
 
 class HuggingFaceAPI():
-    def __init__(self, model_id, tokenizer_max_length, vector_data, vector_embedding, vector_store, quantization_params="auto", device="cpu"):
-        self.vector_data = vector_data
+    def __init__(self, model_id, tokenizer_max_length, vector_embedding, vector_store, quantization_params="auto", device="cpu"):
         self.vector_embedding = vector_embedding
         self.vector_store = vector_store
         self.model_id = model_id
@@ -102,17 +101,17 @@ Response: """
         # retrieval
         retrieval_docs = self.vector_store.search(self.vector_embedding.get_vector_embedding(search_query))
         # create context from retrieved documents
-        feature_names = self.vector_data.get_df_doc().columns
+        feature_names = self.vector_store.vector_data.get_df_doc().columns
         context = []
         if feature_length_strategy == "balanced":
-            feature_lengths = np.array([np.percentile(self.vector_data.get_df_doc()[col].apply(len), feature_length_threshold) for col in feature_names])
+            feature_lengths = np.array([np.percentile(self.vector_store.vector_data.get_df_doc()[col].apply(len), feature_length_threshold) for col in feature_names])
             feature_lengths = ((feature_lengths / (feature_lengths.sum() + 1e-7)) * max_feature_length).astype("int32")
             for idx, doc_id in enumerate(retrieval_docs["score_by_docs"]["doc_id"].iloc[:num_context_docs]):
-                context.append(f"[{doc_keyword} {idx+1}]\n" + "\n".join([f"{k.split('_')[-1]}: {v[:max_len]}" for max_len, (k, v) in zip(feature_lengths, self.vector_data.get_df_doc().loc[doc_id].items())]))
+                context.append(f"[{doc_keyword} {idx+1}]\n" + "\n".join([f"{k.split('_')[-1]}: {v[:max_len]}" for max_len, (k, v) in zip(feature_lengths, self.vector_store.vector_data.get_df_doc().loc[doc_id].items())]))
         else:
             feature_lengths = (np.array(1 / (len(feature_names) + 1e-7)) * max_feature_length).astype("int32")
             for idx, doc_id in enumerate(retrieval_docs["score_by_docs"]["doc_id"].iloc[:num_context_docs]):
-                context.append(f"[{doc_keyword} {idx+1}]\n" + "\n".join([f"{k.split('_')[-1]}: {v[:max_len]}" for max_len, (k, v) in zip([max_feature_length] * len(feature_names), self.vector_data.get_df_doc().loc[doc_id].items())]))
+                context.append(f"[{doc_keyword} {idx+1}]\n" + "\n".join([f"{k.split('_')[-1]}: {v[:max_len]}" for max_len, (k, v) in zip([max_feature_length] * len(feature_names), self.vector_store.vector_storevector_data.get_df_doc().loc[doc_id].items())]))
         # cut text with max value
         context = "\n".join(context)
         # create prompt

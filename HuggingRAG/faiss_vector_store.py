@@ -4,9 +4,7 @@ import faiss
 
 class FaissVectorStore():
     def __init__(self, vector_data, ranker, similarity_algorithm="dot_product", k=1_000_000):
-        self.corpus_container = vector_data.get_df_doc_feature()[["doc_id", "chunk_id"]]
-        self.corpus_container["scores"] = 0.0
-        self.corpus_container["scores"] = self.corpus_container["scores"].astype("float32")
+        self.vector_data = vector_data
         self.store = None
         self.ranker = ranker
         if similarity_algorithm not in ["dot_product"]:
@@ -34,4 +32,7 @@ class FaissVectorStore():
         if self.similarity_algorithm == "dot_product":
             scores = ((scores + 1.0) / 2.0)
         # ranking
-        return self.ranker(self.corpus_container, scores, indicies, excluding_zero_score)
+        corpus_container = self.vector_data.get_df_doc_feature()[["doc_id", "chunk_id"]]
+        corpus_container["scores"] = 0.0
+        corpus_container["scores"] = corpus_container["scores"].astype("float32")
+        return self.ranker(corpus_container, scores, indicies, excluding_zero_score)
