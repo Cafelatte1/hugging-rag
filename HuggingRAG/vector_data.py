@@ -8,7 +8,7 @@ class VectorDataContainer():
     def __init__(self, text_preprocessor=None, text_splitter=None):
         self.df_doc = None
         self.df_doc_feature = None
-        if text_splitter is None:
+        if text_preprocessor is None:
             self.text_preprocessor = (lambda text: " ".join(text.split()))
         else:
             self.text_preprocessor = text_preprocessor
