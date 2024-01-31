@@ -52,9 +52,16 @@ Request: {question}"""
         return prompt
 
     def generate(
-            self, prompt, search_query, question, doc_keyword="Document",
+            self, prompt, search_query, question, generation_params=None, doc_keyword="Document",
             num_context_docs=1, feature_length_strategy="balanced", max_feature_length=768, feature_length_threshold=95,
         ):
+        if generation_params == "auto":
+            generation_params = {
+                "max_tokens": 300,
+                "temperature": 0.8,
+                "seed": 42,
+            }
+            generation_params["early_stopping"] = True if generation_params["num_beams"] > 1 else False
         # retrieval
         retrieval_docs = self.vector_store.search(self.vector_embedding.get_vectorembedding(search_query))
         # create context from retrieved documents
@@ -81,7 +88,8 @@ Request: {question}"""
             messages=[
                 prompt["instruction"],
                 prompt["request"],
-            ]
+            ],
+            **generation_params
         )
         response = gened.choices[0].message
         end_time = time.time()
