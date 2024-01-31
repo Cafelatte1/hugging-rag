@@ -3,8 +3,8 @@ from setuptools import setup
 setup(
     name="HuggingRAG",
     version="0.0.7",
-    description="High-level library for RAG task with huggingface API",
-    url="https://github.com/Cafelatte1/hugging-rag",
+    description="High-Level Library for RAG task with HuggingFace API",
+    url="https://github.com/Cafelatte1/hugging-rag.git",
     author="Cafelatte1",
     license="MIT",
     python_requires='>=3.10',
