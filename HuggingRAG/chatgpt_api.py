@@ -62,7 +62,7 @@ Request: {question}"""
             }
             generation_params["early_stopping"] = True if generation_params["num_beams"] > 1 else False
         # retrieval
-        retrieval_docs = self.vector_store.search(self.vector_embedding.get_vector_embedding(search_query))
+        retrieval_docs = self.vector_store.search(self.vector_embedding.get_vector_embedding(self.vector_store.vector_data.text_preprocessor(search_query)))
         # create context from retrieved documents
         feature_names = self.vector_store.vector_data.get_df_doc().columns
         context = []
