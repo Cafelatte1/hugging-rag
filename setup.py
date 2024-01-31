@@ -19,5 +19,7 @@ setup(
         'accelerate',
         'langchain',
         'openai',
+        'faiss-cpu',
+        'scann',
     ],
 )

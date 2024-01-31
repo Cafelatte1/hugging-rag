@@ -55,19 +55,19 @@ class HuggingFaceVectorEmbedding():
 
     def get_vectorembedding(self, docs, batch_size=32, norm=True):
         self.model.to(self.device)
-        embed = []
         pooler = MeanPooling()
         tokens = self.tokenize([docs] if isinstance(docs, str) else docs)
         dl = DataLoader(TensorDataset(tokens["input_ids"], tokens["attention_mask"]), batch_size=batch_size, shuffle=False)
+        embed = []
         with torch.no_grad():
             for batch in tqdm(dl):
                 output = self.model(**{"input_ids": batch[0].to(self.device), "attention_mask": batch[1].to(self.device)})
-                embed.append(pooler(output.last_hidden_state, batch[1]))
+                embed.append(pooler(output.last_hidden_state, batch[1]).to(torch.float32))
                 del batch, output
                 torch.cuda.empty_cache()
                 gc.collect()
         del pooler, tokens, dl
-        embed = torch.cat(embed, dim=0).to(torch.float32)
+        embed = torch.cat(embed, dim=0)
         embed = F.normalize(embed, p=2, dim=1).detach().cpu().numpy() if norm else embed.detach().cpu().numpy()
         self.model.to(torch.device("cpu"))
         torch.cuda.empty_cache()
