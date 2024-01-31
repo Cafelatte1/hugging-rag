@@ -16,7 +16,7 @@ class FaissVectorStore():
         self.k = k
         self.max_gpu_k = 2048
 
-    def get_vectorstore(self, embedding, use_gpu=False):
+    def get_vector_store(self, embedding, use_gpu=False):
         if self.similarity_algorithm == "dot_product":
             self.store = faiss.IndexFlatIP(embedding.shape[-1])
         else:
