@@ -21,7 +21,7 @@ class VectorDataContainer():
         else:
             self.text_splitter = text_splitter
 
-    def get_vector_data(self, doc_id, doc_features):
+    def get_vector_data(self, doc_id, doc_features, including_feature_name=True, feature_name_separator=":"):
         self.df_doc = pd.DataFrame(doc_features)
         self.df_doc.index = doc_id
         df_doc_feature = []
@@ -34,7 +34,7 @@ class VectorDataContainer():
                             "doc_id": idx,
                             "feature_name": feature_name,
                             "chunk_id": chunk_id,
-                            "chunk": f"{feature_name}: {chunk}",
+                            "chunk": f"{feature_name}{feature_name_separator}{chunk}" if including_feature_name else {chunk},
                         })
         self.df_doc_feature = pd.DataFrame(df_doc_feature)
 
