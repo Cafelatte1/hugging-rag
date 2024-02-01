@@ -34,7 +34,7 @@ class VectorDataContainer():
                             "doc_id": idx,
                             "feature_name": feature_name,
                             "chunk_id": chunk_id,
-                            "chunk": f"{feature_name}{feature_name_separator}{chunk}" if including_feature_name else {chunk},
+                            "chunk": f"{feature_name}{feature_name_separator}{chunk}" if including_feature_name else f"{chunk}",
                         })
         self.df_doc_feature = pd.DataFrame(df_doc_feature)
 
