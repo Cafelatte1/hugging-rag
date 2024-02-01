@@ -20,6 +20,7 @@ class ChatGPTAPI():
                 "role": "system",
                 "content": """검색된 문서들을 참고하여 요청에 알맞는 답변을 해주세요.
 검색된 문서들은 ``` 구분자 안에 [Document N] 형식으로 있습니다.
+[Document N]의 세부 속성 또한 'feature: text' 형식으로 나열되어 있습니다.
 모르는 요청이면 '잘 모르겠습니다.'라고 답변해주세요."""
             }
             prompt["request"] = {
@@ -37,6 +38,7 @@ class ChatGPTAPI():
                 "role": "system",
                 "content": """Please refer to the searched documents to provide an appropriate response to the request.
 The searched documents are in the format [Document N] within the ``` delimiter.
+Detailed properties of [Document N] are also listed in 'feature: text' format.
 If you do not know the request, please respond with 'I don't know.'."""
             }
             prompt["request"] = {
@@ -64,17 +66,18 @@ Request: {question}"""
         # retrieval
         retrieval_docs = self.vector_store.search(self.vector_embedding.get_vector_embedding(self.vector_store.vector_data.text_preprocessor(search_query)))
         # create context from retrieved documents
-        feature_names = self.vector_store.vector_data.get_df_doc().columns
+        if (len(self.vector_store.vector_data.content_features) == 0):
+            df_content = self.vector_store.vector_data.get_df_doc()
+        else:
+            df_content = self.vector_store.vector_data.get_df_doc()[self.vector_store.vector_data.content_features]
         context = []
         if feature_length_strategy == "balanced":
-            feature_lengths = np.array([np.percentile(self.vector_store.vector_data.get_df_doc()[col].apply(len), feature_length_threshold) for col in feature_names])
+            feature_lengths = np.array([np.percentile(df_content[col].apply(len), feature_length_threshold) for col in df_content.columns])
             feature_lengths = ((feature_lengths / (feature_lengths.sum() + 1e-7)) * max_feature_length).astype("int32")
-            for idx, doc_id in enumerate(retrieval_docs["score_by_docs"]["doc_id"].iloc[:num_context_docs]):
-                context.append(f"[{doc_keyword} {idx+1}]\n" + "\n".join([f"{k.split('_')[-1]}: {v[:max_len]}" for max_len, (k, v) in zip(feature_lengths, self.vector_store.vector_data.get_df_doc().loc[doc_id].items())]))
         else:
-            feature_lengths = (np.array(1 / (len(feature_names) + 1e-7)) * max_feature_length).astype("int32")
-            for idx, doc_id in enumerate(retrieval_docs["score_by_docs"]["doc_id"].iloc[:num_context_docs]):
-                context.append(f"[{doc_keyword} {idx+1}]\n" + "\n".join([f"{k.split('_')[-1]}: {v[:max_len]}" for max_len, (k, v) in zip([max_feature_length] * len(feature_names), self.vector_store.vector_data.get_df_doc().loc[doc_id].items())]))
+            feature_lengths = (np.array(1 / (len(df_content.columns) + 1e-7)) * max_feature_length).astype("int32")
+        for idx, doc_id in enumerate(retrieval_docs["score_by_docs"]["doc_id"].iloc[:num_context_docs]):
+            context.append(f"[{doc_keyword} {idx+1}]\n" + "\n".join([f"{k.split('_')[-1]}: {v[:max_len]}" for max_len, (k, v) in zip(feature_lengths, df_content.loc[doc_id].items())]))
         # cut text with max value
         context = "\n".join(context)
         # create prompt
