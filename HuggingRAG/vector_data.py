@@ -5,9 +5,13 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 """## Create Vector Data"""
 
 class VectorDataContainer():
-    def __init__(self, text_preprocessor=None, text_splitter=None):
+    def __init__(self, query_features=[], content_features=[], text_preprocessor=None, text_splitter=None):
         self.df_doc = None
         self.df_doc_feature = None
+        # features to be searched
+        self.query_features = query_features
+        # features to be presented from searched documents
+        self.content_features = content_features
         if text_preprocessor is None:
             self.text_preprocessor = (lambda text: " ".join(text.split()))
         else:
@@ -23,14 +27,15 @@ class VectorDataContainer():
         df_doc_feature = []
         for idx, row in tqdm(self.df_doc.iterrows(), total=len(self.df_doc)):
             for feature_name, feature_text in row.items():
-                feature_text = self.text_preprocessor(feature_text)
-                for chunk_id, chunk in enumerate(self.text_splitter.split_text(feature_text)):
-                    df_doc_feature.append({
-                        "doc_id": idx,
-                        "feature_name": feature_name,
-                        "chunk_id": chunk_id,
-                        "chunk": f"{feature_name}: {chunk}",
-                    })
+                if (feature_name in self.query_features) or (len(self.query_features) == 0):
+                    feature_text = self.text_preprocessor(feature_text)
+                    for chunk_id, chunk in enumerate(self.text_splitter.split_text(feature_text)):
+                        df_doc_feature.append({
+                            "doc_id": idx,
+                            "feature_name": feature_name,
+                            "chunk_id": chunk_id,
+                            "chunk": f"{feature_name}: {chunk}",
+                        })
         self.df_doc_feature = pd.DataFrame(df_doc_feature)
 
     def get_df_doc(self):
@@ -41,4 +46,3 @@ class VectorDataContainer():
 
     def get_chunks(self):
         return self.df_doc_feature["chunk"].to_list()
-    
