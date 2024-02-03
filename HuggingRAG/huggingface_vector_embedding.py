@@ -7,7 +7,6 @@ from torch import nn
 import torch.nn.functional as F
 from torch.utils.data import TensorDataset, DataLoader
 from transformers import AutoTokenizer, AutoModel
-from torch.utils.data import TensorDataset
 
 """## Create Vector Embedding"""
 
