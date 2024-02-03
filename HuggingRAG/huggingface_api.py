@@ -54,10 +54,10 @@ class HuggingFaceAPI():
 
     def create_prompt_template(self, lang="kor"):
         if lang in ["kr", "kor"]:
-            prompt = """지시문: 검색된 문서들을 참고하여 요청에 알맞는 답변을 해주세요.
+            prompt = """지시문: 검색된 문서들을 참고하여 요청에 알맞는 응답을 해주세요.
 검색된 문서들은 ``` 구분자 안에 [Document N] 형식으로 있습니다.
 [Document N]의 세부 속성 또한 'feature: text' 형식으로 나열되어 있습니다.
-모르는 요청이면 '잘 모르겠습니다.'라고 답변해주세요.
+모르는 요청이면 '잘 모르겠습니다.'라고 응답해주세요.
 
 검색된 문서
 ```
@@ -66,7 +66,7 @@ class HuggingFaceAPI():
 
 요청: {question}
 
-답변: """
+응답: """
         else:
             prompt = """Instructions: Please refer to the searched documents to provide an appropriate response to the request.
 The searched documents are in the format [Document N] within the ``` delimiter.
