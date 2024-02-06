@@ -88,7 +88,7 @@ If you are unfamiliar with the request, please reply 'I don't know.'.
         return prompt
 
     def generate(
-            self, prompt, search_query_list, question_list, doc_keyword="Document", generation_params="auto", batch_size=1,
+            self, prompt, search_query_list, instruction_list, generation_params="auto", batch_size=1,
             num_context_docs=1, feature_length_strategy="balanced", max_feature_length=768, feature_length_threshold=95,
         ):
         if generation_params == "auto":
@@ -109,7 +109,7 @@ If you are unfamiliar with the request, please reply 'I don't know.'.
         # create prompt
         prompt_list = []
         retrieval_docs_list = []
-        for search_query, question in zip(search_query_list, question_list):
+        for search_query, question in zip(search_query_list, instruction_list):
             # retrieval
             retrieval_docs = self.vector_store.search(self.vector_embedding.get_vector_embedding(self.vector_store.vector_data.text_preprocessor(search_query)))
             # create context from retrieved documents
@@ -124,7 +124,7 @@ If you are unfamiliar with the request, please reply 'I don't know.'.
             else:
                 feature_lengths = (np.array(1 / (len(df_content.columns) + 1e-7)) * max_feature_length).astype("int32")
             for idx, doc_id in enumerate(retrieval_docs["score_by_docs"]["doc_id"].iloc[:num_context_docs]):
-                context.append(f"[{doc_keyword} {idx+1}]\n" + "\n".join([f"{k.split('_')[-1]}: {v[:max_len]}" for max_len, (k, v) in zip(feature_lengths, df_content.loc[doc_id].items())]))
+                context.append(f"[Document {idx+1}]\n" + "\n".join([f"{k.split('_')[-1]}: {v[:max_len]}" for max_len, (k, v) in zip(feature_lengths, df_content.loc[doc_id].items())]))
             # cut text with max value
             context = "\n".join(context)
             prompt_list.append(prompt.replace("{context}", context).replace("{question}", question))
