@@ -55,35 +55,36 @@ class HuggingFaceAPI():
         )
         return tokens
 
+    # alpaca style prompt format
     def create_prompt_template(self, lang="kor"):
         if lang in ["kr", "kor"]:
-            prompt = """지시문: 검색된 문서들을 참고하여 요청에 알맞는 응답을 해주세요.
+            prompt = """입력에 있는 검색된 문서들을 참고하여 요청에 알맞는 응답을 해주세요.
 검색된 문서들은 ``` 구분자 안에 [Document N] 형식으로 있습니다.
 [Document N]의 세부 속성 또한 'feature: text' 형식으로 나열되어 있습니다.
 모르는 요청이면 '잘 모르겠습니다.'라고 응답해주세요.
 
-검색된 문서
-```
+### 지시문:
+{instruction}
+
+### 입력:
 {context}
-```
 
-요청: {question}
-
-응답: """
+### 응답:
+"""
         else:
-            prompt = """Instructions: Please refer to the searched documents to provide an appropriate response to the request.
-The searched documents are in the format [Document N] within the ``` delimiter.
+            prompt = """Please refer to the searched documents in the input and provide an appropriate response to the request.
+Searched documents are in [Document N] format within ``` delimiters.
 Detailed properties of [Document N] are also listed in 'feature: text' format.
-If you do not know the request, please respond with 'I don't know.'
+If you are unfamiliar with the request, please reply 'I don't know.'.
 
-Searched documents
-```
+### Instruction:
+{instruction}
+
+### Input:
 {context}
-```
 
-Request: {question}
-
-Response: """
+### Response:
+"""
         return prompt
 
     def generate(
