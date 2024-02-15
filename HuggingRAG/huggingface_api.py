@@ -18,15 +18,15 @@ class HuggingFaceAPI():
         self.model_id = model_id
         self.device = torch.device("cuda" if device == "gpu" else device)
         self.max_length = tokenizer_max_length
-        self.tokenizer = AutoTokenizer.from_pretrained(model_id, padding_side="left", runcation_side="left")
+        self.tokenizer = AutoTokenizer.from_pretrained(model_id, padding_side="left", truncation_side="right")
         self.tokenizer.pad_token = self.tokenizer.eos_token
         self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
         self.tokenizer_params = {
             "max_length": self.max_length,
             "padding": "max_length",
             "truncation": True,
-            "return_attention_mask": True,
             "return_token_type_ids": False,
+            "add_special_tokens": False,
             "return_tensors": "pt"
         }
         if quantization_params is not None:
@@ -58,7 +58,7 @@ class HuggingFaceAPI():
     # alpaca style prompt format
     def create_prompt_template(self, lang="kor"):
         if lang in ["kr", "kor"]:
-            prompt = """\
+            prompt = """{bos_token}\
 아래는 작업을 설명하는 명령어와 추가 컨텍스트를 제공하는 입력이 짝을 이루는 예제입니다.\
 입력에는 검색된 문서들과 그에 대한 정보들이 있습니다.\
 문서는 'Document N' 형식으로 되어 있고 세부 속성은 'Property: Content' 형식으로 되어 있습니다.\
@@ -71,9 +71,9 @@ class HuggingFaceAPI():
 {context}
 
 ### 응답:
-"""
+{eos_token}"""
         else:
-            prompt = """\
+            prompt = """{bos_token}\
 Below is an instruction that describes a task, paired with an input that provides further context.\
 Input contains the searched documents and information about them.\
 The document is in 'Document N' format and the detailed properties are in 'Property: Content' format.\
@@ -86,7 +86,7 @@ Write a response that appropriately completes the request.
 {context}
 
 ### Response:
-"""
+{eos_token}"""
         return prompt
 
     def generate(
@@ -129,7 +129,7 @@ Write a response that appropriately completes the request.
                 context.append(f"[Document {idx+1}]\n" + "\n".join([f"{k.split('_')[-1]}: {v[:max_len]}" for max_len, (k, v) in zip(feature_lengths, df_content.loc[doc_id].items())]))
             # cut text with max value
             context = "\n".join(context)
-            prompt_list.append(prompt.replace("{context}", context).replace("{question}", question))
+            prompt_list.append(prompt.replace("{bos_token}", "" if self.tokenizer.bos_token is None else self.tokenizer.bos_token).replace("{context}", context).replace("{question}", question).replace("{eos_token}", ""))
             retrieval_docs_list.append(retrieval_docs)
         # tokenizing
         tokens = self.tokenize(prompt_list)
