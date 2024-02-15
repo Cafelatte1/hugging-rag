@@ -19,49 +19,43 @@ class ChatGPTAPI():
             prompt["instruction"] = {
                 "role": "system",
                 "content": """\
-검색된 문서들을 참고하여 요청에 알맞는 응답을 해주세요.
-검색된 문서들은 ``` 구분자 안에 [Document N] 형식으로 있습니다.
-[Document N]의 세부 속성 또한 'feature: text' 형식으로 나열되어 있습니다.
-모르는 요청이면 '잘 모르겠습니다.'라고 응답해주세요.
+지시문에 알맞는 응답을 해주세요.\
+``` 구분자 안에 검색된 문서들과 그에 대한 정보들이 있습니다.\
+문서는 'Document N' 형식으로 되어 있고 세부 속성은 'Property: Content' 형식으로 되어 있습니다.\
 """
             }
             prompt["request"] = {
                 "role": "user",
                 "content": """\
-검색된 문서
 ```
 {context}
 ```
 
-요청: {question}
-"""
+지시문: {instruction}"""
             }
         else:
             prompt = {}
             prompt["instruction"] = {
                 "role": "system",
                 "content": """\
-Please refer to the searched documents to provide an appropriate response to the request.
-The searched documents are in the format [Document N] within the ``` delimiter.
-Detailed properties of [Document N] are also listed in 'feature: text' format.
-If you do not know the request, please respond with 'I don't know.'.
+Please give an appropriate response to the instructions.\
+The searched documents and information about them are contained within the ``` separator.\
+    The document is in 'Document N' format and the detailed properties are in 'Property: Content' format.\
 """
             }
             prompt["request"] = {
                 "role": "user",
                 "content": """\
-Searched documents
 ```
 {context}
 ```
 
-Request: {question}
-"""
+Instruction: {instruction}"""
             }
         return prompt
 
     def generate(
-            self, prompt, search_query, question, generation_params=None, doc_keyword="Document",
+            self, prompt, search_query, instruction, generation_params=None, doc_keyword="Document",
             num_context_docs=1, feature_length_strategy="balanced", max_feature_length=768, feature_length_threshold=95, reformat_output=True,
         ):
         if generation_params == "auto":
@@ -89,7 +83,7 @@ Request: {question}
         # cut text with max value
         context = "\n".join(context)
         # create prompt
-        prompt["request"]["content"] = prompt["request"]["content"].replace("{context}", context).replace("{question}", question)
+        prompt["request"]["content"] = prompt["request"]["content"].replace("{context}", context).replace("{instruction}", instruction)
         prompt["request"]["content"] = prompt["request"]["content"][:self.max_len]
         # generate
         start_time = time.time()
