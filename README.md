@@ -12,7 +12,7 @@ This module extract embedding vector from chunks.
 This module stores extracted vector and searches K-Nearest Neighbors with FAISS or ScaNN library.
 ### 4. Vector Ranker
 This module scores embedding vectors(chunks) and aggregate the score by documents.<br>
-Only 'cosine similarity' is supported for scoring. (internally scaled and calculated)
+Only 'cosine similarity' is supported for scoring. (internally scaled and calculated)<br>
 The supported algorithms in aggregating functions are 'first_matching', 'equal_weighted' and 'exponential_weighted'.
 ## Generation Modules
 ### 1. HuggingFaceAPI
