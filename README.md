@@ -3,14 +3,14 @@ High-Level Library for RAG task with HuggingFace API
 
 # Structure
 ### Vector Data Container
-This module migrate and controls raw data as HuggingRAG format with Pandas library.
+This module migrate and controls raw data as HuggingRAG format with Pandas library.<br>
 Chunks of documents also includes to this module.
 ### Vector Embedding
 This module extract embedding vector from chunks.
 ### Vector Store
 This module stores extracted vector and searches K-Nearest Neighbors with FAISS or ScaNN library.
 ### Vector Ranker
-This module scores embedding vectors(chunks) and aggregate the score by documents.
+This module scores embedding vectors(chunks) and aggregate the score by documents.<br>
 The supported algorithms in aggregating functions are 'first_matching', 'equal_weighted' and 'exponential_weighted'.
 
 # Tutorials
