@@ -112,7 +112,7 @@ Write a response that appropriately completes the request.
             else:
                 feature_lengths = (np.array(1 / (len(df_content.columns) + 1e-7)) * max_feature_length).astype("int32")
             for idx, doc_id in enumerate(retrieval_docs["score_by_docs"]["doc_id"].iloc[:num_context_docs]):
-                context.append(f"Document {idx+1}\n" + "\n".join([f"{k.split('_')[-1]}: {v[:max_len]}" for max_len, (k, v) in zip(feature_lengths, df_content.loc[doc_id].items())]))
+                context.append(f"Document {idx+1}\n" + "\n".join([f"{k}: {v[:max_len]}" for max_len, (k, v) in zip(feature_lengths, df_content.loc[doc_id].items())]))
             context = "\n".join(context)
             prompt_mapper = {
                 "{bos_token}": "" if self.tokenizer.bos_token is None else self.tokenizer.bos_token,
