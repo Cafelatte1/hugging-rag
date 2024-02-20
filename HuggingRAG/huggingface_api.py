@@ -48,7 +48,7 @@ class HuggingFaceAPI():
 아래는 작업을 설명하는 명령어와 추가 컨텍스트를 제공하는 입력이 짝을 이루는 예제입니다. \
 입력에는 검색된 문서들과 그에 대한 정보들이 있습니다. \
 문서는 'Document N' 형식으로 되어 있고 세부 속성은 'Property: Content' 형식으로 되어 있습니다. \
-요청을 적절히 완료하는 응답을 작성하세요.
+검색된 문서를 참고하여 요청을 적절히 완료하는 응답을 작성하세요.
 
 ### 지시문:
 {instruction}
@@ -63,7 +63,7 @@ class HuggingFaceAPI():
 Below is an instruction that describes a task, paired with an input that provides further context. \
 Input contains the searched documents and information about them. \
 The document is in 'Document N' format and the detailed properties are in 'Property: Content' format. \
-Write a response that appropriately completes the request.
+Write a response that appropriately completes the request referring to the searched documents.
 
 ### Instruction:
 {instruction}
