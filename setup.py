@@ -17,7 +17,6 @@ setup(
         'transformers',
         'bitsandbytes',
         'accelerate',
-        'langchain',
         'openai',
         'faiss-cpu',
         # 'scann',

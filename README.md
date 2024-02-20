@@ -9,7 +9,8 @@ Chunks of documents also includes to this module.
 ### 2. Vector Embedding
 This module extract embedding vector from chunks.
 ### 3. Vector Store
-This module stores extracted vector and searches K-Nearest Neighbors with FAISS or ScaNN library.
+This module stores extracted vector and searches K-Nearest Neighbors with FAISS or ScaNN library.<br>
+(ScaNN library is supported when installing 'https://github.com/Cafelatte1/hugging-rag-scann.git')
 ### 4. Vector Ranker
 This module scores embedding vectors(chunks) and aggregate the score by documents.<br>
 Only 'cosine similarity' is supported for scoring. (internally scaled and calculated)<br>

@@ -45,9 +45,9 @@ class HuggingFaceAPI():
     def create_prompt_template(self, lang="kor"):
         if lang in ["kr", "kor"]:
             prompt = """{bos_token}\
-아래는 작업을 설명하는 명령어와 추가 컨텍스트를 제공하는 입력이 짝을 이루는 예제입니다.\
-입력에는 검색된 문서들과 그에 대한 정보들이 있습니다.\
-문서는 'Document N' 형식으로 되어 있고 세부 속성은 'Property: Content' 형식으로 되어 있습니다.\
+아래는 작업을 설명하는 명령어와 추가 컨텍스트를 제공하는 입력이 짝을 이루는 예제입니다. \
+입력에는 검색된 문서들과 그에 대한 정보들이 있습니다. \
+문서는 'Document N' 형식으로 되어 있고 세부 속성은 'Property: Content' 형식으로 되어 있습니다. \
 요청을 적절히 완료하는 응답을 작성하세요.
 
 ### 지시문:
@@ -60,9 +60,9 @@ class HuggingFaceAPI():
 {eos_token}"""
         else:
             prompt = """{bos_token}\
-Below is an instruction that describes a task, paired with an input that provides further context.\
-Input contains the searched documents and information about them.\
-The document is in 'Document N' format and the detailed properties are in 'Property: Content' format.\
+Below is an instruction that describes a task, paired with an input that provides further context. \
+Input contains the searched documents and information about them. \
+The document is in 'Document N' format and the detailed properties are in 'Property: Content' format. \
 Write a response that appropriately completes the request.
 
 ### Instruction:
@@ -113,16 +113,23 @@ Write a response that appropriately completes the request.
                 feature_lengths = (np.array(1 / (len(df_content.columns) + 1e-7)) * max_feature_length).astype("int32")
             for idx, doc_id in enumerate(retrieval_docs["score_by_docs"]["doc_id"].iloc[:num_context_docs]):
                 context.append(f"Document {idx+1}\n" + "\n".join([f"{k.split('_')[-1]}: {v[:max_len]}" for max_len, (k, v) in zip(feature_lengths, df_content.loc[doc_id].items())]))
-            # cut text with max value
             context = "\n".join(context)
-            prompt_list.append(prompt.replace("{bos_token}", "" if self.tokenizer.bos_token is None else self.tokenizer.bos_token).replace("{instruction}", instruction.replace("{context}", context)).replace("{eos_token}", ""))
+            prompt_mapper = {
+                "{bos_token}": "" if self.tokenizer.bos_token is None else self.tokenizer.bos_token,
+                "{instruction}": instruction,
+                "{context}": context,
+                "{eos_token}": "",
+            }
+            for k, v in prompt_mapper.items():
+                prompt = prompt.replace(k, v)
+            prompt_list.append(prompt)
             retrieval_docs_list.append(retrieval_docs)
 
         start_time = time.time()
         response_list = []
         # batch-generation
         if batch_size > 1:
-            self.tokenizer_params = {
+            tokenizer_params = {
                 "max_length": self.max_length,
                 "padding": "max_length",
                 "truncation": True,
@@ -131,7 +138,7 @@ Write a response that appropriately completes the request.
                 "return_tensors": "pt"
             }
             # tokenizing
-            tokens = self.tokenizer.batch_encode_plus(prompt_list)
+            tokens = self.tokenizer.batch_encode_plus(prompt_list, **tokenizer_params)
             dl = DataLoader(TensorDataset(tokens["input_ids"], tokens["attention_mask"]), batch_size=batch_size, shuffle=False)
             # generate
             with torch.no_grad():
@@ -147,7 +154,7 @@ Write a response that appropriately completes the request.
                     gc.collect()
             
         else:
-            self.tokenizer_params = {
+            tokenizer_params = {
                 "max_length": self.max_length,
                 "padding": False,
                 "truncation": True,
@@ -157,7 +164,7 @@ Write a response that appropriately completes the request.
             }
             for prompt in prompt_list:
                 # tokenizing
-                tokens = self.tokenizer.encode_plus(prompt_list)
+                tokens = self.tokenizer.encode_plus(prompt, **tokenizer_params)
                 # generate
                 with torch.no_grad():
                     gened = self.model.generate(
