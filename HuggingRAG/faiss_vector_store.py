@@ -32,7 +32,7 @@ class FaissVectorStore():
         if self.similarity_algorithm == "dot_product":
             scores = ((scores + 1.0) / 2.0)
         # ranking
-        corpus_container = self.vector_data.get_df_doc_feature()[["doc_id", "chunk_id"]]
+        corpus_container = self.vector_data.get_df_doc_feature()[["doc_id", "feature_name", "chunk_id"]]
         corpus_container["scores"] = 0.0
         corpus_container["scores"] = corpus_container["scores"].astype("float32")
         return self.ranker(corpus_container, scores, indicies, excluding_zero_score)

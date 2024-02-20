@@ -77,7 +77,7 @@ Write a response that appropriately completes the request.
 
     def generate(
             self, prompt, search_query_list, instruction_list, generation_params="auto", batch_size=1,
-            num_context_docs=1, feature_length_strategy="balanced", max_feature_length=768, feature_length_threshold=95, min_similarity_score=0.5,
+            num_context_docs=1, min_similarity_score=0.5, feature_length_strategy="balanced", max_feature_length=768, feature_length_threshold=95,
         ):
         if generation_params == "auto":
             generation_params = {
@@ -100,7 +100,7 @@ Write a response that appropriately completes the request.
         for search_query, instruction in zip(search_query_list, instruction_list):
             # retrieval
             retrieval_docs = self.vector_store.search(self.vector_embedding.get_vector_embedding(self.vector_store.vector_data.text_preprocessor(search_query)))
-            retrieval_docs = retrieval_docs[retrieval_docs["score_by_docs"] >= min_similarity_score]
+            selected_docs = retrieval_docs["score_by_docs"][retrieval_docs["score_by_docs"]["scores"] >= min_similarity_score]
             if len(retrieval_docs) > 0:
                 # create context from retrieved documents
                 if (len(self.vector_store.vector_data.content_features) == 0):
@@ -113,7 +113,7 @@ Write a response that appropriately completes the request.
                     feature_lengths = ((feature_lengths / (feature_lengths.sum() + 1e-7)) * max_feature_length).astype("int32")
                 else:
                     feature_lengths = (np.array(1 / (len(df_content.columns) + 1e-7)) * max_feature_length).astype("int32")
-                for idx, doc_id in enumerate(retrieval_docs["score_by_docs"]["doc_id"].iloc[:num_context_docs]):
+                for idx, doc_id in enumerate(selected_docs["doc_id"].iloc[:num_context_docs]):
                     context.append(f"Document {idx+1}\n" + "\n".join([f"{k}: {v[:max_len]}" for max_len, (k, v) in zip(feature_lengths, df_content.loc[doc_id].items())]))
                 context = "\n".join(context)
             else:
