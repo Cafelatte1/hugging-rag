@@ -35,7 +35,13 @@ class HuggingFaceVectorEmbedding():
         self.device = torch.device("cuda" if device == "gpu" else device)
         self.max_length = tokenizer_max_length
         self.tokenizer = AutoTokenizer.from_pretrained(model_id)
-        self.tokenizer_params = {
+        self.model = AutoModel.from_pretrained(model_id)
+        self.model.eval()
+
+    def get_vector_embedding(self, docs, batch_size=32, norm=True):
+        self.model.to(self.device)
+        pooler = MeanPooling()
+        tokenizer_params = {
             "max_length": self.max_length,
             "padding": "max_length",
             "truncation": True,
@@ -43,19 +49,7 @@ class HuggingFaceVectorEmbedding():
             "return_token_type_ids": False,
             "return_tensors": "pt"
         }
-        self.model = AutoModel.from_pretrained(model_id)
-        self.model.eval()
-
-    def tokenize(self, x):
-        tokens = self.tokenizer.batch_encode_plus(
-            x, **self.tokenizer_params,
-        )
-        return tokens
-
-    def get_vector_embedding(self, docs, batch_size=32, norm=True):
-        self.model.to(self.device)
-        pooler = MeanPooling()
-        tokens = self.tokenize([docs] if isinstance(docs, str) else docs)
+        tokens = self.tokenizer.batch_encode_plus([docs] if isinstance(docs, str) else docs, **tokenizer_params)
         dl = DataLoader(TensorDataset(tokens["input_ids"], tokens["attention_mask"]), batch_size=batch_size, shuffle=False)
         embed = []
         with torch.no_grad():
