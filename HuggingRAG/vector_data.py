@@ -44,7 +44,6 @@ class VectorDataContainer():
         for idx, row in tqdm(self.df_doc.iterrows(), total=len(self.df_doc)):
             for feature_name, feature_text in row.items():
                 if (feature_name in self.query_features) or (len(self.query_features) == 0):
-                    # feature_text = self.text_preprocessor(feature_text)
                     for chunk_id, chunk in enumerate(self.text_splitter(feature_text)):
                         df_doc_feature.append({
                             "doc_id": idx,
