@@ -162,7 +162,7 @@ Write a response that appropriately completes the request.
                 "add_special_tokens": False,
                 "return_tensors": "pt"
             }
-            for prompt in prompt_list:
+            for prompt in tqdm(prompt_list):
                 # tokenizing
                 tokens = self.tokenizer.encode_plus(prompt, **tokenizer_params)
                 # generate
