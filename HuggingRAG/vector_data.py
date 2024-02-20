@@ -39,7 +39,7 @@ class VectorDataContainer():
     def get_vector_data(self, doc_id, doc_features, including_feature_name=True, feature_name_separator=":"):
         self.df_doc = pd.DataFrame(doc_features)
         self.df_doc.index = doc_id
-        self.df_doc = self.df_doc.apply(lambda x: self.text_preprocessor(x))
+        self.df_doc = self.df_doc.apply(lambda x: x.apply(lambda text: self.text_preprocessor(text)))
         df_doc_feature = []
         for idx, row in tqdm(self.df_doc.iterrows(), total=len(self.df_doc)):
             for feature_name, feature_text in row.items():
