@@ -140,11 +140,11 @@ Write a response that appropriately completes the request.
                         **{"input_ids": batch[0].to(self.device), "attention_mask": batch[1].to(self.device)},
                         **generation_params,
                     )
+                    # decoding
+                    response_list.extend(self.tokenizer.batch_decode(gened, skip_special_tokens=True))
                     del batch, gened
                     torch.cuda.empty_cache()
                     gc.collect()
-                    # decoding
-                    response_list.extend(self.tokenizer.batch_decode(gened, skip_special_tokens=True))
             
         else:
             self.tokenizer_params = {
@@ -164,11 +164,11 @@ Write a response that appropriately completes the request.
                         **{"input_ids": tokens["input_ids"].to(self.device), "attention_mask": tokens["attention_mask"].to(self.device)},
                         **generation_params,
                     )
+                    # decoding
+                    response_list.extend(self.tokenizer.batch_decode(gened, skip_special_tokens=True))
                     del gened
                     torch.cuda.empty_cache()
                     gc.collect()
-                    # decoding
-                    response_list.extend(self.tokenizer.batch_decode(gened, skip_special_tokens=True))
         end_time = time.time()
         # return output
         output = {
