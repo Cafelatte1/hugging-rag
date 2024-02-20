@@ -21,14 +21,6 @@ class HuggingFaceAPI():
         self.tokenizer = AutoTokenizer.from_pretrained(model_id, padding_side="left", truncation_side="right")
         self.tokenizer.pad_token = self.tokenizer.eos_token
         self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
-        self.tokenizer_params = {
-            "max_length": self.max_length,
-            "padding": "max_length",
-            "truncation": True,
-            "return_token_type_ids": False,
-            "add_special_tokens": False,
-            "return_tensors": "pt"
-        }
         if quantization_params is not None:
             if quantization_params == "auto":
                 quantization_params = BitsAndBytesConfig(
@@ -48,12 +40,6 @@ class HuggingFaceAPI():
         self.model.eval()
         self.model.generation_config.pad_token_id = self.model.generation_config.eos_token_id
         self.model.config.use_cache = True
-
-    def tokenize(self, x):
-        tokens = self.tokenizer.batch_encode_plus(
-            x, **self.tokenizer_params,
-        )
-        return tokens
 
     # alpaca style prompt format
     def create_prompt_template(self, lang="kor"):
@@ -106,12 +92,12 @@ Write a response that appropriately completes the request.
                 "no_repeat_ngram_size": 3,
             }
             generation_params["early_stopping"] = True if generation_params["num_beams"] > 1 else False
-        search_query = [search_query] if isinstance(search_query, str) else search_query
-        question = [question] if isinstance(question, str) else question
+        search_query_list = [search_query_list] if isinstance(search_query_list, str) else search_query_list
+        instruction_list = [instruction_list] if isinstance(instruction_list, str) else instruction_list
         # create prompt
         prompt_list = []
         retrieval_docs_list = []
-        for search_query, question in zip(search_query_list, instruction_list):
+        for search_query, instruction in zip(search_query_list, instruction_list):
             # retrieval
             retrieval_docs = self.vector_store.search(self.vector_embedding.get_vector_embedding(self.vector_store.vector_data.text_preprocessor(search_query)))
             # create context from retrieved documents
@@ -126,28 +112,63 @@ Write a response that appropriately completes the request.
             else:
                 feature_lengths = (np.array(1 / (len(df_content.columns) + 1e-7)) * max_feature_length).astype("int32")
             for idx, doc_id in enumerate(retrieval_docs["score_by_docs"]["doc_id"].iloc[:num_context_docs]):
-                context.append(f"[Document {idx+1}]\n" + "\n".join([f"{k.split('_')[-1]}: {v[:max_len]}" for max_len, (k, v) in zip(feature_lengths, df_content.loc[doc_id].items())]))
+                context.append(f"Document {idx+1}\n" + "\n".join([f"{k.split('_')[-1]}: {v[:max_len]}" for max_len, (k, v) in zip(feature_lengths, df_content.loc[doc_id].items())]))
             # cut text with max value
             context = "\n".join(context)
-            prompt_list.append(prompt.replace("{bos_token}", "" if self.tokenizer.bos_token is None else self.tokenizer.bos_token).replace("{context}", context).replace("{question}", question).replace("{eos_token}", ""))
+            prompt_list.append(prompt.replace("{bos_token}", "" if self.tokenizer.bos_token is None else self.tokenizer.bos_token).replace("{instruction}", instruction.replace("{context}", context)).replace("{eos_token}", ""))
             retrieval_docs_list.append(retrieval_docs)
-        # tokenizing
-        tokens = self.tokenize(prompt_list)
-        dl = DataLoader(TensorDataset(tokens["input_ids"], tokens["attention_mask"]), batch_size=batch_size, shuffle=False)
-        # generate
+
         start_time = time.time()
         response_list = []
-        with torch.no_grad():
-            for batch in tqdm(dl):
-                gened = self.model.generate(
-                    **{"input_ids": batch[0].to(self.device), "attention_mask": batch[1].to(self.device)},
-                    **generation_params,
-                )
-                del batch, gened
-                torch.cuda.empty_cache()
-                gc.collect()
-                # decoding
-                response_list.extend(self.tokenizer.batch_decode(gened, skip_special_tokens=True))
+        # batch-generation
+        if batch_size > 1:
+            self.tokenizer_params = {
+                "max_length": self.max_length,
+                "padding": "max_length",
+                "truncation": True,
+                "return_token_type_ids": False,
+                "add_special_tokens": False,
+                "return_tensors": "pt"
+            }
+            # tokenizing
+            tokens = self.tokenizer.batch_encode_plus(prompt_list)
+            dl = DataLoader(TensorDataset(tokens["input_ids"], tokens["attention_mask"]), batch_size=batch_size, shuffle=False)
+            # generate
+            with torch.no_grad():
+                for batch in tqdm(dl):
+                    gened = self.model.generate(
+                        **{"input_ids": batch[0].to(self.device), "attention_mask": batch[1].to(self.device)},
+                        **generation_params,
+                    )
+                    del batch, gened
+                    torch.cuda.empty_cache()
+                    gc.collect()
+                    # decoding
+                    response_list.extend(self.tokenizer.batch_decode(gened, skip_special_tokens=True))
+            
+        else:
+            self.tokenizer_params = {
+                "max_length": self.max_length,
+                "padding": False,
+                "truncation": True,
+                "return_token_type_ids": False,
+                "add_special_tokens": False,
+                "return_tensors": "pt"
+            }
+            for prompt in prompt_list:
+                # tokenizing
+                tokens = self.tokenizer.encode_plus(prompt_list)
+                # generate
+                with torch.no_grad():
+                    gened = self.model.generate(
+                        **{"input_ids": tokens["input_ids"].to(self.device), "attention_mask": tokens["attention_mask"].to(self.device)},
+                        **generation_params,
+                    )
+                    del gened
+                    torch.cuda.empty_cache()
+                    gc.collect()
+                    # decoding
+                    response_list.extend(self.tokenizer.batch_decode(gened, skip_special_tokens=True))
         end_time = time.time()
         # return output
         output = {
