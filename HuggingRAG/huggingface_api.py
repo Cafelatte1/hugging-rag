@@ -101,7 +101,7 @@ Write a response that appropriately completes the request.
             # retrieval
             retrieval_docs = self.vector_store.search(self.vector_embedding.get_vector_embedding(self.vector_store.vector_data.text_preprocessor(search_query)))
             selected_docs = retrieval_docs["score_by_docs"][retrieval_docs["score_by_docs"]["scores"] >= min_similarity_score]
-            if len(retrieval_docs) > 0:
+            if len(selected_docs) > 0:
                 # create context from retrieved documents
                 if (len(self.vector_store.vector_data.content_features) == 0):
                     df_content = self.vector_store.vector_data.get_df_doc()
