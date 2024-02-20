@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="HuggingRAG",
-    version="0.0.8",
+    version="0.1.0",
     description="High-Level Library for RAG task with HuggingFace API",
     url="https://github.com/Cafelatte1/hugging-rag.git",
     author="Cafelatte1",
@@ -20,6 +20,6 @@ setup(
         'langchain',
         'openai',
         'faiss-cpu',
-        'scann',
+        # 'scann',
     ],
 )

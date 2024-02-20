@@ -27,11 +27,11 @@ class ChatGPTAPI():
             prompt["request"] = {
                 "role": "user",
                 "content": """\
+지시문: {instruction}
+
 ```
 {context}
-```
-
-지시문: {instruction}"""
+```"""
             }
         else:
             prompt = {}
@@ -46,11 +46,11 @@ The searched documents and information about them are contained within the ``` s
             prompt["request"] = {
                 "role": "user",
                 "content": """\
+Instruction: {instruction}
+
 ```
 {context}
-```
-
-Instruction: {instruction}"""
+```"""
             }
         return prompt
 
@@ -83,7 +83,7 @@ Instruction: {instruction}"""
         # cut text with max value
         context = "\n".join(context)
         # create prompt
-        prompt["request"]["content"] = prompt["request"]["content"].replace("{context}", context).replace("{instruction}", instruction)
+        prompt["request"]["content"] = prompt["request"]["content"].replace("{instruction}", instruction).replace("{context}", context)
         prompt["request"]["content"] = prompt["request"]["content"][:self.max_len]
         # generate
         start_time = time.time()
