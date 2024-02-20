@@ -19,6 +19,6 @@ setup(
         'accelerate',
         'openai',
         'faiss-cpu',
-        # 'scann',
+        'scann',
     ],
 )
