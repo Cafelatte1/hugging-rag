@@ -53,7 +53,7 @@ class HuggingFaceVectorEmbedding():
         dl = DataLoader(TensorDataset(tokens["input_ids"], tokens["attention_mask"]), batch_size=batch_size, shuffle=False)
         embed = []
         with torch.no_grad():
-            for batch in tqdm(dl):
+            for batch in dl:
                 output = self.model(**{"input_ids": batch[0].to(self.device), "attention_mask": batch[1].to(self.device)})
                 embed.append(pooler(output.last_hidden_state, batch[1].to(self.device)).to(torch.float32))
                 del batch, output
