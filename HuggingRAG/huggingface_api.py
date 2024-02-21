@@ -111,10 +111,12 @@ Write a response that appropriately completes the request referring to the searc
                 if feature_length_strategy == "balanced":
                     feature_lengths = np.array([np.percentile(df_content[col].apply(len), feature_length_threshold) for col in df_content.columns])
                     feature_lengths = ((feature_lengths / (feature_lengths.sum() + 1e-7)) * max_feature_length).astype("int32")
-                else:
+                elif feature_length_strategy == "equal":
                     feature_lengths = (np.array(1 / (len(df_content.columns) + 1e-7)) * max_feature_length).astype("int32")
+                else:
+                    feature_lengths = [-1] * len(df_content.columns)
                 for idx, doc_id in enumerate(selected_docs["doc_id"].iloc[:num_context_docs]):
-                    context.append(f"Document {idx+1}\n" + "\n".join([f"{k}: {v[:max_len]}" for max_len, (k, v) in zip(feature_lengths, df_content.loc[doc_id].items())]))
+                    context.append(f"Document {idx+1}\n" + "\n".join([f"{k}: {v}" if max_len == -1 else f"{k}: {v[:max_len]}" for max_len, (k, v) in zip(feature_lengths, df_content.loc[doc_id].items())]))
                 context = "\n".join(context)
             else:
                 context = ""
