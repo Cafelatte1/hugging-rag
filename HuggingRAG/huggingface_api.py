@@ -76,7 +76,7 @@ Write a response that appropriately completes the request referring to the searc
         return prompt
 
     def generate(
-            self, prompt, search_query_list, instruction_list, generation_params="auto", batch_size=1,
+            self, prompt_template, search_query_list, instruction_list, generation_params="auto", batch_size=1,
             num_context_docs=1, min_similarity_score=0.5, feature_length_strategy="balanced", max_feature_length=768, feature_length_threshold=95,
         ):
         if generation_params == "auto":
@@ -120,15 +120,18 @@ Write a response that appropriately completes the request referring to the searc
                 context = "\n".join(context)
             else:
                 context = ""
+            print(instruction)
             prompt_mapper = {
                 "{bos_token}": "" if self.tokenizer.bos_token is None else self.tokenizer.bos_token,
                 "{instruction}": instruction,
                 "{context}": context,
                 "{eos_token}": "",
             }
+            prompt = prompt_template[:]
             for k, v in prompt_mapper.items():
                 prompt = prompt.replace(k, v)
             prompt_list.append(prompt)
+            print(prompt)
             retrieval_docs_list.append(retrieval_docs)
 
         start_time = time.time()
@@ -190,3 +193,4 @@ Write a response that appropriately completes the request referring to the searc
             "inference_runtime": round(end_time - start_time, 3),
         }
         return output
+    

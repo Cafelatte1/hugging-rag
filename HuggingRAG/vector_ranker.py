@@ -27,7 +27,9 @@ class VectorRanker():
         # average score by exponential weight and get Top N docs
         elif self.ranking_type == "exponential_weighted":
             # assign score
-            corpus_container["scores"].iloc[indicies[0]] = scores[0] * ((np.logspace(start=0, stop=1, num=len(scores[0]), base=self.base) / self.base)[::-1])
+            multiplier = (np.logspace(start=0, stop=1, num=len(scores[0]), base=self.base) / self.base)[::-1]
+            multiplier = multiplier / multiplier.sum()
+            corpus_container["scores"].iloc[indicies[0]] = scores[0] * multiplier
             # get only topN chunks
             if excluding_zero_score:
                 candidates = corpus_container[corpus_container["scores"] > 0].sort_values("scores", ascending=False).iloc[:self.topN_chunks]
