@@ -117,7 +117,6 @@ Write a response that appropriately completes the request referring to the searc
                 context = "\n".join(context)
             else:
                 context = ""
-            print(instruction)
             prompt_mapper = {
                 "{bos_token}": "" if self.tokenizer.bos_token is None else self.tokenizer.bos_token,
                 "{instruction}": instruction,
@@ -128,7 +127,6 @@ Write a response that appropriately completes the request referring to the searc
             for k, v in prompt_mapper.items():
                 prompt = prompt.replace(k, v)
             prompt_list.append(prompt)
-            print(prompt)
             retrieval_docs_list.append(retrieval_docs)
 
         start_time = time.time()
