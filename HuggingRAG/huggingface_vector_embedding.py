@@ -42,7 +42,6 @@ class HuggingFaceVectorEmbedding():
             "max_length": self.max_length,
             "padding": "max_length",
             "truncation": True,
-            "return_attention_mask": True,
             "return_token_type_ids": False,
             "return_tensors": "pt"
         }
