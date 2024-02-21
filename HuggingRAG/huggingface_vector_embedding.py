@@ -33,10 +33,10 @@ class HuggingFaceVectorEmbedding():
         self.max_length = tokenizer_max_length
         self.tokenizer = AutoTokenizer.from_pretrained(model_id)
         self.model = AutoModel.from_pretrained(model_id)
+        self.model.to(self.device)
         self.model.eval()
 
     def get_vector_embedding(self, docs, batch_size=32, norm=True):
-        self.model.to(self.device)
         pooler = MeanPooling()
         tokenizer_params = {
             "max_length": self.max_length,
@@ -59,7 +59,6 @@ class HuggingFaceVectorEmbedding():
         del pooler, tokens, dl
         embed = torch.cat(embed, dim=0)
         embed = F.normalize(embed, p=2, dim=1).detach().cpu().numpy() if norm else embed.detach().cpu().numpy()
-        self.model.to(torch.device("cpu"))
         torch.cuda.empty_cache()
         gc.collect()
         return embed
