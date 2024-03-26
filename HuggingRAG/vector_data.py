@@ -9,7 +9,7 @@ class split_text_with_overlap():
         self.overlap_size = overlap_size
         self.min_chunk_size = min_chunk_size
 
-    def split_text(self, x):
+    def split_text(self, text):
         """
         Split a text into chunks with a specified overlap size.
 
