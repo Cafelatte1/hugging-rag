@@ -3,27 +3,33 @@ from tqdm import tqdm
 
 """## Create Vector Data"""
 
-def split_text_with_overlap(text, chunk_size, overlap_size, min_chunk_size):
-    """
-    Split a text into chunks with a specified overlap size.
-    
-    Parameters:
-        text (str): The input text to split.
-        chunk_size (int): The size of each chunk.
-        overlap_size (int): The size of the overlap between chunks.
-        
-    Returns:
-        list: A list of text chunks.
-    """
-    chunks = []
-    start = 0
-    while start < len(text):
-        end = min(start + chunk_size, len(text))
-        if len(text[start:end]) < min_chunk_size:
-            break
-        chunks.append(text[start:end])
-        start += chunk_size - overlap_size
-    return chunks
+class split_text_with_overlap():
+    def __init__(self, chunk_size, overlap_size, min_chunk_size):
+        self.chunk_size = chunk_size
+        self.overlap_size = overlap_size
+        self.min_chunk_size = min_chunk_size
+
+    def split_text(self, x):
+        """
+        Split a text into chunks with a specified overlap size.
+
+        Parameters:
+            text (str): The input text to split.
+            chunk_size (int): The size of each chunk.
+            overlap_size (int): The size of the overlap between chunks.
+
+        Returns:
+            list: A list of text chunks.
+        """
+        chunks = []
+        start = 0
+        while start < len(text):
+            end = min(start + self.chunk_size, len(text))
+            if len(text[start:end]) < self.min_chunk_size:
+                break
+            chunks.append(text[start:end])
+            start += self.chunk_size - self.overlap_size
+        return chunks
 
 class VectorDataContainer():
     def __init__(self, query_features=[], content_features=[], text_preprocessor=None, text_splitter=None):
@@ -44,7 +50,7 @@ class VectorDataContainer():
         for idx, row in tqdm(self.df_doc.iterrows(), total=len(self.df_doc)):
             for feature_name, feature_text in row.items():
                 if (feature_name in self.query_features) or (len(self.query_features) == 0):
-                    for chunk_id, chunk in enumerate(self.text_splitter(feature_text)):
+                    for chunk_id, chunk in enumerate(self.text_splitter.split_text(feature_text)):
                         df_doc_feature.append({
                             "doc_id": idx,
                             "feature_name": feature_name,
