@@ -8,8 +8,10 @@ from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 
 """## Generation with Retrieval Documents"""
 
+
 class HuggingFaceAPI():
-    def __init__(self, model_id, tokenizer_max_length, vector_embedding, vector_store, quantization_params="auto", device="cpu"):
+    def __init__(self, model_id, tokenizer_max_length, vector_embedding, vector_store, quantization_params="auto",
+                 device="cpu"):
         self.vector_embedding = vector_embedding
         self.vector_store = vector_store
         self.model_id = model_id
@@ -30,7 +32,8 @@ class HuggingFaceAPI():
                     # set data type in calculating the weights
                     bnb_4bit_compute_dtype=torch.bfloat16,
                 )
-            self.model = AutoModelForCausalLM.from_pretrained(model_id, quantization_config=quantization_params, device_map="auto")
+            self.model = AutoModelForCausalLM.from_pretrained(model_id, quantization_config=quantization_params,
+                                                              device_map="auto")
         else:
             self.model = AutoModelForCausalLM.from_pretrained(model_id)
             self.model.to(self.device)
@@ -73,9 +76,10 @@ Write a response that appropriately completes the request referring to the searc
         return prompt
 
     def generate(
-            self, prompt_template, search_query_list, instruction_list, generation_params="auto", batch_size=1,
-            num_context_docs=1, min_similarity_score=0.5, feature_length_strategy="balanced", max_feature_length=768, feature_length_threshold=95,
-        ):
+            self, prompt_template, search_query_list, request_list, generation_params="auto", batch_size=1,
+            num_context_docs=1, min_similarity_score=0.5, feature_length_strategy="balanced", max_feature_length=768,
+            feature_length_threshold=95,
+    ):
         if generation_params == "auto":
             generation_params = {
                 "max_new_tokens": 300,
@@ -90,37 +94,46 @@ Write a response that appropriately completes the request referring to the searc
             }
             generation_params["early_stopping"] = True if generation_params["num_beams"] > 1 else False
         search_query_list = [search_query_list] if isinstance(search_query_list, str) else search_query_list
-        instruction_list = [instruction_list] if isinstance(instruction_list, str) else instruction_list
+        request_list = [request_list] if isinstance(request_list, str) else request_list
         # create prompt
         prompt_list = []
         retrieval_docs_list = []
-        for search_query, instruction in zip(search_query_list, instruction_list):
+        for search_query, request in zip(search_query_list, request_list):
             # retrieval
-            retrieval_docs = self.vector_store.search(self.vector_embedding.get_vector_embedding(self.vector_store.vector_data.text_preprocessor(search_query)))
-            selected_docs = retrieval_docs["score_by_docs"][retrieval_docs["score_by_docs"]["scores"] >= min_similarity_score]
+            retrieval_docs = self.vector_store.search(self.vector_embedding.get_vector_embedding(
+                self.vector_store.vector_data.text_preprocessor(search_query)))
+            selected_docs = retrieval_docs["score_by_docs"][
+                retrieval_docs["score_by_docs"]["scores"] >= min_similarity_score]
             if len(selected_docs) > 0:
                 # create context from retrieved documents
                 if (len(self.vector_store.vector_data.content_features) == 0):
                     df_content = self.vector_store.vector_data.get_df_doc()
                 else:
-                    df_content = self.vector_store.vector_data.get_df_doc()[self.vector_store.vector_data.content_features]
+                    df_content = self.vector_store.vector_data.get_df_doc()[
+                        self.vector_store.vector_data.content_features]
                 context = []
                 if feature_length_strategy == "balanced":
-                    feature_lengths = np.array([np.percentile(df_content[col].apply(len), feature_length_threshold) for col in df_content.columns])
-                    feature_lengths = ((feature_lengths / (feature_lengths.sum() + 1e-7)) * max_feature_length).astype("int32")
+                    feature_lengths = np.array(
+                        [np.percentile(df_content[col].apply(len), feature_length_threshold) for col in
+                         df_content.columns])
+                    feature_lengths = ((feature_lengths / (feature_lengths.sum() + 1e-7)) * max_feature_length).astype(
+                        "int32")
                 elif feature_length_strategy == "equal":
-                    feature_lengths = (np.array(1 / (len(df_content.columns) + 1e-7)) * max_feature_length).astype("int32")
+                    feature_lengths = (np.array(1 / (len(df_content.columns) + 1e-7)) * max_feature_length).astype(
+                        "int32")
                 else:
                     feature_lengths = [-1] * len(df_content.columns)
                 for idx, doc_id in enumerate(selected_docs["doc_id"].iloc[:num_context_docs]):
-                    context.append(f"Document {idx+1}\n" + "\n".join([f"{k}: {v}" if max_len == -1 else f"{k}: {v[:max_len]}" for max_len, (k, v) in zip(feature_lengths, df_content.loc[doc_id].items())]))
+                    context.append(f"[Document {idx + 1}]\n" + "\n".join(
+                        [f"{k}: {v}" if max_len == -1 else f"{k}: {v[:max_len]}" for max_len, (k, v) in
+                         zip(feature_lengths, df_content.loc[doc_id].items())]))
                 context = "\n".join(context)
             else:
                 context = ""
             prompt_mapper = {
                 "{bos_token}": "" if self.tokenizer.bos_token is None else self.tokenizer.bos_token,
-                "{instruction}": instruction,
                 "{context}": context,
+                "{request}": request,
                 "{eos_token}": "",
             }
             prompt = prompt_template[:]
@@ -143,7 +156,8 @@ Write a response that appropriately completes the request referring to the searc
             }
             # tokenizing
             tokens = self.tokenizer.batch_encode_plus(prompt_list, **tokenizer_params)
-            dl = DataLoader(TensorDataset(tokens["input_ids"], tokens["attention_mask"]), batch_size=batch_size, shuffle=False)
+            dl = DataLoader(TensorDataset(tokens["input_ids"], tokens["attention_mask"]), batch_size=batch_size,
+                            shuffle=False)
             # generate
             with torch.no_grad():
                 for batch in tqdm(dl):
@@ -156,7 +170,7 @@ Write a response that appropriately completes the request referring to the searc
                     del batch, gened
                     torch.cuda.empty_cache()
                     gc.collect()
-            
+
         else:
             tokenizer_params = {
                 "max_length": self.max_length,
@@ -172,7 +186,8 @@ Write a response that appropriately completes the request referring to the searc
                 # generate
                 with torch.no_grad():
                     gened = self.model.generate(
-                        **{"input_ids": tokens["input_ids"].to(self.device), "attention_mask": tokens["attention_mask"].to(self.device)},
+                        **{"input_ids": tokens["input_ids"].to(self.device),
+                           "attention_mask": tokens["attention_mask"].to(self.device)},
                         **generation_params,
                     )
                     # decoding
@@ -184,6 +199,7 @@ Write a response that appropriately completes the request referring to the searc
         # return output
         output = {
             "retrieval_docs": retrieval_docs_list,
+            "prompt_list": prompt_list,
             "response": response_list,
             "inference_runtime": round(end_time - start_time, 3),
         }
