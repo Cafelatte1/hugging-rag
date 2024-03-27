@@ -8,16 +8,16 @@ from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 
 """## Generation with Retrieval Documents"""
 
-
 class HuggingFaceAPI():
-    def __init__(self, model_id, tokenizer_max_length, vector_embedding, vector_store, quantization_params="auto",
+    def __init__(self, model_id, tokenizer_id, tokenizer_max_length, vector_embedding, vector_store, quantization_params="auto",
                  device="cpu"):
         self.vector_embedding = vector_embedding
         self.vector_store = vector_store
         self.model_id = model_id
+        self.tokenizer_id = tokenizer_id
         self.device = torch.device("cuda" if device == "gpu" else device)
         self.max_length = tokenizer_max_length
-        self.tokenizer = AutoTokenizer.from_pretrained(model_id, padding_side="left", truncation_side="right")
+        self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_id, padding_side="left", truncation_side="right")
         self.tokenizer.pad_token = self.tokenizer.eos_token
         self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
         if quantization_params is not None:
@@ -32,8 +32,7 @@ class HuggingFaceAPI():
                     # set data type in calculating the weights
                     bnb_4bit_compute_dtype=torch.bfloat16,
                 )
-            self.model = AutoModelForCausalLM.from_pretrained(model_id, quantization_config=quantization_params,
-                                                              device_map="auto")
+            self.model = AutoModelForCausalLM.from_pretrained(model_id, quantization_config=quantization_params, device_map="auto")
         else:
             self.model = AutoModelForCausalLM.from_pretrained(model_id)
             self.model.to(self.device)
