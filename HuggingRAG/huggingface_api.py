@@ -123,7 +123,7 @@ Write a response that appropriately completes the request referring to the searc
                 else:
                     feature_lengths = [-1] * len(df_content.columns)
                 for idx, doc_id in enumerate(selected_docs["doc_id"].iloc[:num_context_docs]):
-                    context.append(f"{document_context_format.replace("{N}", idx + 1)}\n" + "\n".join(
+                    context.append(f"{document_context_format.replace('{N}', idx + 1)}\n" + "\n".join(
                         [f"{k}: {v}" if max_len == -1 else f"{k}: {v[:max_len]}" for max_len, (k, v) in
                          zip(feature_lengths, df_content.loc[doc_id].items())]))
                 context = "\n".join(context)
