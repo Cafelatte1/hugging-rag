@@ -77,7 +77,7 @@ Write a response that appropriately completes the request referring to the searc
     def generate(
             self, prompt_template, search_query_list, request_list, generation_params="auto", batch_size=1,
             num_context_docs=1, min_similarity_score=0.5, feature_length_strategy="balanced", max_feature_length=768,
-            feature_length_threshold=95,
+            feature_length_threshold=95, document_context_format="[Document {N}]",
     ):
         if generation_params == "auto":
             generation_params = {
@@ -123,7 +123,7 @@ Write a response that appropriately completes the request referring to the searc
                 else:
                     feature_lengths = [-1] * len(df_content.columns)
                 for idx, doc_id in enumerate(selected_docs["doc_id"].iloc[:num_context_docs]):
-                    context.append(f"[Document {idx + 1}]\n" + "\n".join(
+                    context.append(f"{document_context_format.replace("{N}", idx + 1)}\n" + "\n".join(
                         [f"{k}: {v}" if max_len == -1 else f"{k}: {v[:max_len]}" for max_len, (k, v) in
                          zip(feature_lengths, df_content.loc[doc_id].items())]))
                 context = "\n".join(context)
