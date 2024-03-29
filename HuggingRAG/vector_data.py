@@ -32,7 +32,7 @@ class split_text_with_overlap():
         return chunks
 
 class VectorDataContainer():
-    def __init__(self, query_features=[], content_features=[], text_preprocessor=None, text_splitter=None):
+    def __init__(self, query_features=[], content_features=[], text_preprocessor=None, text_splitter=None, min_chunk_size=0):
         self.df_doc = None
         self.df_doc_feature = None
         # features to be searched
@@ -41,6 +41,7 @@ class VectorDataContainer():
         self.content_features = content_features
         self.text_preprocessor = (lambda text: " ".join(text.split())) if text_preprocessor is None else text_preprocessor
         self.text_splitter = split_text_with_overlap(chunk_size=200, chunk_overlap=20, min_chunk_size=100) if text_splitter is None else text_splitter
+        self.min_chunk_size = min_chunk_size
 
     def get_vector_data(self, doc_id, doc_features, including_feature_name=True, feature_name_separator=":"):
         self.df_doc = pd.DataFrame(doc_features)
@@ -51,12 +52,13 @@ class VectorDataContainer():
             for feature_name, feature_text in row.items():
                 if (feature_name in self.query_features) or (len(self.query_features) == 0):
                     for chunk_id, chunk in enumerate(self.text_splitter.split_text(feature_text)):
-                        df_doc_feature.append({
-                            "doc_id": idx,
-                            "feature_name": feature_name,
-                            "chunk_id": chunk_id,
-                            "chunk": f"{feature_name}{feature_name_separator}{chunk}" if including_feature_name else f"{chunk}",
-                        })
+                        if len(chunk) > self.min_chunk_size:
+                            df_doc_feature.append({
+                                "doc_id": idx,
+                                "feature_name": feature_name,
+                                "chunk_id": chunk_id,
+                                "chunk": f"{feature_name}{feature_name_separator}{chunk}" if including_feature_name else f"{chunk}",
+                            })
         self.df_doc_feature = pd.DataFrame(df_doc_feature)
 
     def get_df_doc(self):
