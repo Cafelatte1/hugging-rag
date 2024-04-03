@@ -1,0 +1,18 @@
+Metadata-Version: 2.1
+Name: HuggingRAG
+Version: 0.1.0
+Summary: High-Level Library for RAG task with HuggingFace API
+Home-page: https://github.com/Cafelatte1/hugging-rag.git
+Author: Cafelatte1
+License: MIT
+Requires-Python: >=3.10
+License-File: LICENSE
+Requires-Dist: numpy
+Requires-Dist: pandas
+Requires-Dist: tqdm
+Requires-Dist: sentencepiece
+Requires-Dist: transformers
+Requires-Dist: bitsandbytes
+Requires-Dist: accelerate
+Requires-Dist: openai
+Requires-Dist: faiss-cpu
