@@ -99,8 +99,7 @@ Write a response that appropriately completes the request referring to the searc
         retrieval_docs_list = []
         for search_query, request in zip(search_query_list, request_list):
             # retrieval
-            retrieval_docs = self.vector_store.search(self.vector_embedding.get_vector_embedding(
-                self.vector_store.vector_data.text_preprocessor(search_query)))
+            retrieval_docs = self.vector_store.search(self.vector_embedding.get_vector_embedding(search_query.strip()))
             selected_docs = retrieval_docs["score_by_docs"][
                 retrieval_docs["score_by_docs"]["scores"] >= min_similarity_score]
             if len(selected_docs) > 0:

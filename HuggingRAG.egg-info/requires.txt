@@ -1,0 +1,9 @@
+numpy
+pandas
+tqdm
+sentencepiece
+transformers
+bitsandbytes
+accelerate
+openai
+faiss-cpu
